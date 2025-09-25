@@ -4,7 +4,7 @@ namespace CSharp_BookStop.API.Models;
 
 public class Author
 {
-    public required int AuthorId {get; set;}
+    public required Guid AuthorId {get; set;}
     [MaxLength(32)]
     public required string AuthorName {get; set;}
     [MaxLength(1024)]
