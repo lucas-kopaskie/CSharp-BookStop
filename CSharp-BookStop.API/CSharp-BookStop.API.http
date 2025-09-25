@@ -1,0 +1,6 @@
+@CSharp_BookStop.API_HostAddress = http://localhost:5129
+
+GET {{CSharp_BookStop.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
