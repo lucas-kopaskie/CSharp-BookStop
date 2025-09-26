@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CSharp_BookStop.API.Data;
-using CSharp_BookStop.API.Models;
+using CSharp_BookStop.Database.Data;
+using CSharp_BookStop.Database.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CSharp_BookStop.API.Controllers
 {
@@ -29,8 +30,8 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         // GET: api/Genre/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Genre>> GetGenre(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<Genre>> GetGenre(Guid id)
         {
             var genre = await _context.Genres.FindAsync(id);
 
@@ -44,8 +45,8 @@ namespace CSharp_BookStop.API.Controllers
 
         // PUT: api/Genre/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutGenre(int id, Genre genre)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> PutGenre(Guid id, Genre genre)
         {
             if (id != genre.GenreId)
             {
@@ -76,8 +77,14 @@ namespace CSharp_BookStop.API.Controllers
         // POST: api/Genre
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Genre>> PostGenre(Genre genre)
+        [Authorize]
+        public async Task<ActionResult<Genre>> PostGenre(CreateGenreDto payload)
         {
+            Genre genre = new()
+            {
+                GenreId = Guid.NewGuid(),
+                GenreName = payload.genreName
+            };
             _context.Genres.Add(genre);
             await _context.SaveChangesAsync();
 
@@ -85,8 +92,8 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         // DELETE: api/Genre/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGenre(int id)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteGenre(Guid id)
         {
             var genre = await _context.Genres.FindAsync(id);
             if (genre == null)
@@ -100,7 +107,7 @@ namespace CSharp_BookStop.API.Controllers
             return NoContent();
         }
 
-        private bool GenreExists(int id)
+        private bool GenreExists(Guid id)
         {
             return _context.Genres.Any(e => e.GenreId == id);
         }

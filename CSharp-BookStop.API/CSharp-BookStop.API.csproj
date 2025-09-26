@@ -5,9 +5,11 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>CSharp_BookStop.API</RootNamespace>
+        <UserSecretsId>4ab40c02-4d0b-43b1-80c8-77ddcbf47a30</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
@@ -26,6 +28,10 @@
 
     <ItemGroup>
       <Folder Include="Controllers\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CSharp-BookStop.Database\CSharp-BookStop.Database.csproj" />
     </ItemGroup>
 
 </Project>

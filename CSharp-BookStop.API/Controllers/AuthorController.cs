@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CSharp_BookStop.API.Data;
-using CSharp_BookStop.API.Models;
+using CSharp_BookStop.Database.Data;
+using CSharp_BookStop.Database.Models;
 
 namespace CSharp_BookStop.API.Controllers
 {
@@ -45,7 +45,7 @@ namespace CSharp_BookStop.API.Controllers
         // PUT: api/Author/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAuthor(int id, Author author)
+        public async Task<IActionResult> PutAuthor(Guid id, Author author)
         {
             if (id != author.AuthorId)
             {
@@ -100,7 +100,7 @@ namespace CSharp_BookStop.API.Controllers
             return NoContent();
         }
 
-        private bool AuthorExists(int id)
+        private bool AuthorExists(Guid id)
         {
             return _context.Authors.Any(e => e.AuthorId == id);
         }
