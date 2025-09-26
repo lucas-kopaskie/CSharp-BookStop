@@ -1,7 +1,7 @@
-﻿using CSharp_BookStop.API.Models;
+﻿using CSharp_BookStop.Database.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CSharp_BookStop.API.Data;
+namespace CSharp_BookStop.Database.Data;
 
 public class BookStopContext(DbContextOptions<BookStopContext> options) : DbContext(options)
 {

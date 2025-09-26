@@ -1,4 +1,4 @@
-﻿namespace CSharp_BookStop.API.Models;
+﻿namespace CSharp_BookStop.Database.Models;
 
 public record BookListingDto(Guid BookId, string Title, decimal Price, IEnumerable<Genre> Genres, 
     IEnumerable<Author> Authors);

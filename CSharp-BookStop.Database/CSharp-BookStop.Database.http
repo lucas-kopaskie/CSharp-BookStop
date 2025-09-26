@@ -1,0 +1,6 @@
+@CSharp_BookStop.Database_HostAddress = http://localhost:5030
+
+GET {{CSharp_BookStop.Database_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

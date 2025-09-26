@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace CSharp_BookStop.API.Models;
+namespace CSharp_BookStop.Database.Models;
 
 [Index(nameof(Email), IsUnique = true)]
 public class User

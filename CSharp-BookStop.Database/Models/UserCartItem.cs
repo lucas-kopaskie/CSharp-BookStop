@@ -1,4 +1,4 @@
-﻿namespace CSharp_BookStop.API.Models;
+﻿namespace CSharp_BookStop.Database.Models;
 
 public class UserCartItem
 {
