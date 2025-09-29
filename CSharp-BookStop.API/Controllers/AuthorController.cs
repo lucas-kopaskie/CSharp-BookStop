@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CSharp_BookStop.Database.Data;
-using CSharp_BookStop.Database.Models;
+using CSharp_BookStop.Database.Entities;
 
 namespace CSharp_BookStop.API.Controllers
 {
