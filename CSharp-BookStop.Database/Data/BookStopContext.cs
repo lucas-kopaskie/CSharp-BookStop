@@ -1,4 +1,4 @@
-﻿using CSharp_BookStop.Database.Models;
+﻿using CSharp_BookStop.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.Database.Data;
