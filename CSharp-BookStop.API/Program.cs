@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("e5a9a97b-3560-48bc-9c43-998425596ffd")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwtSigningCredentials"]!)),
         ValidIssuer = "localhost",
         ValidAudience = "localhost",
         ValidateIssuerSigningKey = true,
