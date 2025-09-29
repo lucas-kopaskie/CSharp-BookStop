@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateLifetime = true,
     };
 });
+builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<BookStopContext>(options =>
