@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CSharp_BookStop.Database.Data;
@@ -13,34 +8,36 @@ namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GenreController : ControllerBase
+    public class GenreController(BookStopContext context) : ControllerBase
     {
-        private readonly BookStopContext _context;
-
-        public GenreController(BookStopContext context)
-        {
-            _context = context;
-        }
-
-        // GET: api/Genre
+        // GET: api/Genre?limit=5;offset=0
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Genre>>> GetGenres()
+        public async Task<ActionResult<IEnumerable<GetGenresDto>>> GetGenres([FromQuery] int offset,
+            [FromQuery] int limit)
         {
-            return await _context.Genres.ToListAsync();
+            return await context.Genres.OrderBy(g => g.GenreName).
+                Skip(offset).Take(limit).Select(g => 
+                new GetGenresDto(g.GenreId, g.GenreName)).ToListAsync();
         }
 
-        // GET: api/Genre/5
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult<Genre>> GetGenre(Guid id)
+        // GET: api/Genre/5?limit=5;offset=0
+        [HttpGet("{genreName}")]
+        public async Task<ActionResult<GetGenreDto>> GetGenreAndBooks(string genreName, [FromQuery] int offset, [FromQuery] int limit)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var genre = await context.Genres.Select(g => new
+            {
+                g.GenreId,
+                g.GenreName,
+                Books = g.Books.Skip(offset).Take(limit).ToList()
+                
+            }).SingleOrDefaultAsync(g => g.GenreName == genreName);
 
             if (genre == null)
             {
                 return NotFound();
             }
 
-            return genre;
+            return new GetGenreDto(genre.GenreId, genre.GenreName, genre.Books);
         }
 
         // PUT: api/Genre/5
@@ -53,11 +50,11 @@ namespace CSharp_BookStop.API.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(genre).State = EntityState.Modified;
+            context.Entry(genre).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -77,39 +74,46 @@ namespace CSharp_BookStop.API.Controllers
         // POST: api/Genre
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Genre>> PostGenre(CreateGenreDto payload)
         {
-            Genre genre = new()
+            var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == payload.GenreName);
+            if (genre != null)
+            {
+                return Conflict("Genre already exists.");
+            }
+            
+            Genre newGenre = new()
             {
                 GenreId = Guid.NewGuid(),
-                GenreName = payload.genreName
+                GenreName = payload.GenreName
             };
-            _context.Genres.Add(genre);
-            await _context.SaveChangesAsync();
+            context.Genres.Add(newGenre);
+            await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGenre", new { id = genre.GenreId }, genre);
+            return CreatedAtAction("GetGenre", new { id = newGenre.GenreId }, newGenre);
         }
 
         // DELETE: api/Genre/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteGenre(Guid id)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var genre = await context.Genres.FindAsync(id);
             if (genre == null)
             {
                 return NotFound();
             }
 
-            _context.Genres.Remove(genre);
-            await _context.SaveChangesAsync();
+            context.Genres.Remove(genre);
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool GenreExists(Guid id)
         {
-            return _context.Genres.Any(e => e.GenreId == id);
+            return context.Genres.Any(e => e.GenreId == id);
         }
     }
 }
