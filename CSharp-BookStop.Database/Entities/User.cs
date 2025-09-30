@@ -13,8 +13,9 @@ public class User
     public required string PasswordSalt { get; set; }
     [MaxLength(128)]
     public required string PasswordHash { get; set; }
-    [MaxLength(128)]
-    public required string RefreshToken { get; set; }
+    [MaxLength(64)]
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiration { get; set; }
     [MaxLength(8)]
     public required string Role { get; set; } = "User";
     

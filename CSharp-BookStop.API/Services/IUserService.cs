@@ -7,4 +7,5 @@ public interface IUserService
 {
     public Task<RegisterUserResultDto> RegisterUser(RegisterUserDto payload);
     public Task<LoginUserResultDto> LoginUser(LoginUserDto payload);
+    public Task<TokenResponseDto?> RefreshTokens(RefreshTokenRequestDto payload);
 }

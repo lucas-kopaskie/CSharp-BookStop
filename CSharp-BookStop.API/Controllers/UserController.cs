@@ -78,14 +78,14 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<GetAuthenticationTokenDto>> LoginUser(LoginUserDto payload)
+        public async Task<ActionResult<TokenResponseDto>> LoginUser(LoginUserDto payload)
         {
             var result = await userService.LoginUser(payload);
 
             return result.Status switch
             {
                 HttpStatusCode.BadRequest => BadRequest(result.Message),
-                _ => Ok(new GetAuthenticationTokenDto(result.UserId, "JWT", result.Token))
+                _ => Ok(new TokenResponseDto(result.Jwt!, result.RefreshToken!))
             };
         }
 
@@ -109,6 +109,20 @@ namespace CSharp_BookStop.API.Controllers
         private bool UserExists(Guid id)
         {
             return context.Users.Any(e => e.UserId == id);
+        }
+
+        [Authorize]
+        [HttpGet("/auth-test")]
+        public string AuthTest()
+        {
+            return "You are authenticated!";
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("/admin")]
+        public string Admin()
+        {
+            return "You are admin!";
         }
     }
 }
