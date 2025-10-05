@@ -10,7 +10,7 @@ namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController(BookStopContext context, IUserService userService) : ControllerBase
+    public class UserController(BookStopContext context, IUserService userService, IAuthService authService) : ControllerBase
     {
         // GET: api/User/5
         [HttpGet("{id:guid}")]
@@ -80,7 +80,7 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> LoginUser(LoginUserDto payload)
         {
-            var result = await userService.LoginUser(payload);
+            var result = await authService.LoginUser(payload);
 
             return result.Status switch
             {
