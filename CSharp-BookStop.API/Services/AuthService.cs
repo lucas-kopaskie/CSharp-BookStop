@@ -1,10 +1,14 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
+using CSharp_BookStop.Database.Data;
+using CSharp_BookStop.Database.Entities;
 using Isopoh.Cryptography.Argon2;
 using Isopoh.Cryptography.SecureArray;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.API.Services;
 
-public class AuthService : IAuthService
+public class AuthService(BookStopContext dataContext, ITokenService tokenService) : IAuthService
 {
     public string HashPassword(string password, byte[] salt)
     {
@@ -25,8 +29,31 @@ public class AuthService : IAuthService
 
         return hashString;
     }
+    
+    public async Task<LoginUserResultDto> LoginUser(LoginUserDto payload)
+    {
+        var user = await dataContext.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
 
-    public bool VerifyPassword(string password, byte[] salt, string hash)
+        if (user == null)
+        {
+            return new LoginUserResultDto(HttpStatusCode.BadRequest, "Invalid username/password.",
+                null, null);
+        }
+            
+        var passwordMatch = VerifyPassword(payload.Password, Convert.FromHexString(user.PasswordSalt), user.PasswordHash);
+        if (!passwordMatch)
+        {
+            return new LoginUserResultDto(HttpStatusCode.BadRequest, "Invalid username/password.",
+                null, null);
+        }
+
+        var jwt = tokenService.CreateJwt(user);
+        var refreshToken = await tokenService.GenerateAndSaveRefreshTokenAsync(user);
+            
+        return new LoginUserResultDto(HttpStatusCode.OK, "Login Successful", jwt, refreshToken);
+    }
+    
+    private static bool VerifyPassword(string password, byte[] salt, string hash)
     {
         var matchingPasswords = false;
         var config = new Argon2Config
