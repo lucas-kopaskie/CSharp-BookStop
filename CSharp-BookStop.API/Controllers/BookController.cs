@@ -13,27 +13,34 @@ namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookController : ControllerBase
+    public class BookController(BookStopContext context) : ControllerBase
     {
-        private readonly BookStopContext _context;
-
-        public BookController(BookStopContext context)
-        {
-            _context = context;
-        }
-
         // GET: api/Book
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<GetBooksDto>>> GetBooks([FromQuery] int offset, [FromQuery] int limit)
         {
-            return await _context.Books.ToListAsync();
+            return await context.Books.OrderBy(b => b.Title).Skip(offset).Take(limit)
+                .Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToListAsync();
         }
 
         // GET: api/Book/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBook(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<GetBookDto>> GetBook(Guid id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await context.Books.Where(b => b.BookId == id).Select(b =>
+                new GetBookDto(b.BookId,
+                    b.Title,
+                    b.Summary,
+                    b.Price,
+                    b.PublishDate,
+                    b.Genres.Select(g => new ReferencedGenreDto(g.GenreId,
+                        g.GenreName)
+                    {
+
+                    }),
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))
+            ).FirstOrDefaultAsync();
 
             if (book == null)
             {
@@ -45,7 +52,7 @@ namespace CSharp_BookStop.API.Controllers
 
         // PUT: api/Book/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutBook(Guid id, Book book)
         {
             if (id != book.BookId)
@@ -53,11 +60,11 @@ namespace CSharp_BookStop.API.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(book).State = EntityState.Modified;
+            context.Entry(book).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -78,33 +85,43 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Book>> PostBook(Book book)
+        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookDto payload)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            Book book = new()
+            {
+                BookId = Guid.NewGuid(),
+                Title = payload.Title,
+                Summary = payload.Summary,
+                PublishDate = payload.PublishDate,
+                Price = payload.Price,
+                Genres = context.Genres.Where(g => payload.Genres.Contains(g.GenreId)).ToList(),
+                Authors = context.Authors.Where(a => payload.Authors.Contains(a.AuthorId)).ToList(),
+            };
+            context.Books.Add(book);
+            await context.SaveChangesAsync();
 
             return CreatedAtAction("GetBook", new { id = book.BookId }, book);
         }
 
         // DELETE: api/Book/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await context.Books.FindAsync(id);
             if (book == null)
             {
                 return NotFound();
             }
 
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
+            context.Books.Remove(book);
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool BookExists(Guid id)
         {
-            return _context.Books.Any(e => e.BookId == id);
+            return context.Books.Any(e => e.BookId == id);
         }
     }
 }
