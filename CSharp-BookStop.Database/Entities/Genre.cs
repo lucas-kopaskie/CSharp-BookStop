@@ -10,5 +10,5 @@ public class Genre
     [MaxLength(32)]
     public required string GenreName { get; set; }
 
-    public IEnumerable<Book> Books { get; set; } = [];
+    public ICollection<Book> Books { get; set; } = new List<Book>();
 }

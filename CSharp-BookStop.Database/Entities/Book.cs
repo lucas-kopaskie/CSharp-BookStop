@@ -12,7 +12,7 @@ public class Book
     public required DateOnly PublishDate { get; set; }
     public required decimal Price { get; set; }
     
-    public required IEnumerable<Genre> Genres { get; set; }
-    public required IEnumerable<Author> Authors { get; set; }
+    public required ICollection<Genre> Genres { get; set; }
+    public required ICollection<Author> Authors { get; set; }
     
 }

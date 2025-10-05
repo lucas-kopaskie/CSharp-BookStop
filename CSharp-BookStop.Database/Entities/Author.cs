@@ -10,6 +10,6 @@ public class Author
     [MaxLength(1024)]
     public required string Biography {get; set;}
     public required DateOnly DateOfBirth {get; set;}
-    
-    public IEnumerable<Book>? Books {get; set;}
+
+    public required ICollection<Book> Books { get; set; } = new List<Book>();
 }
