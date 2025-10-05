@@ -17,7 +17,8 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Book
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetBooksDto>>> GetBooks([FromQuery] int offset, [FromQuery] int limit)
+        public async Task<ActionResult<IEnumerable<GetBooksDto>>> GetBooks([FromQuery] int offset = 0,
+            [FromQuery] int limit = 10)
         {
             return await context.Books.OrderBy(b => b.Title).Skip(offset).Take(limit)
                 .Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 

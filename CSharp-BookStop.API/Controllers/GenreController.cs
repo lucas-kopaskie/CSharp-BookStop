@@ -12,8 +12,8 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Genre?limit=5;offset=0
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetGenresDto>>> GetGenres([FromQuery] int offset,
-            [FromQuery] int limit)
+        public async Task<ActionResult<IEnumerable<GetGenresDto>>> GetGenres([FromQuery] int offset = 0,
+            [FromQuery] int limit = 10)
         {
             return await context.Genres.OrderBy(g => g.GenreName).
                 Skip(offset).Take(limit).Select(g => 
@@ -22,7 +22,8 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Genre/5?limit=5;offset=0
         [HttpGet("{genreName}")]
-        public async Task<ActionResult<GetGenreDto>> GetGenreAndBooks(string genreName, [FromQuery] int offset, [FromQuery] int limit)
+        public async Task<ActionResult<GetGenreDto>> GetGenreAndBooks(string genreName, [FromQuery] int offset = 0,
+            [FromQuery] int limit = 10)
         {
             var genre = await context.Genres.Select(g => new
             {
