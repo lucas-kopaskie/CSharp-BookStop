@@ -1,9 +1,8 @@
-﻿using System.Net;
-using CSharp_BookStop.Database.Entities;
+﻿using CSharp_BookStop.Database.Models;
 
 namespace CSharp_BookStop.API.Services;
 
 public interface IUserService
 {
-    public Task<RegisterUserResponse> RegisterUser(RegisterUserRequest payload);
+    public Task<IUserResponse> RegisterUser(RegisterUserRequest payload);
 }

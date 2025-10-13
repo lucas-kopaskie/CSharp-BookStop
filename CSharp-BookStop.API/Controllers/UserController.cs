@@ -2,6 +2,7 @@ using System.Net;
 using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/User/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetUserRequest>> GetUser(Guid id)
+        public async Task<ActionResult<GetUserResponse>> GetUser(Guid id)
         {
             var user = await context.Users.FindAsync(id);
 
@@ -24,7 +25,7 @@ namespace CSharp_BookStop.API.Controllers
                 return NotFound();
             }
 
-            return new GetUserRequest
+            return new GetUserResponse
                 (
                 user.UserId, user.Email
             );
@@ -65,17 +66,29 @@ namespace CSharp_BookStop.API.Controllers
         // POST: api/User
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("register")]
-        public async Task<ActionResult<GetUserRequest>> RegisterUser(RegisterUserRequest payload)
+        public async Task<ActionResult<GetUserResponse>> RegisterUser(RegisterUserRequest payload)
         {
             var result = await userService.RegisterUser(payload);
-
-            return result.Status switch
+            if (result is RegisterUserResponse)
             {
-                HttpStatusCode.Conflict => Conflict(result.Message),
-                HttpStatusCode.BadRequest => BadRequest(result.Message),
-                _ => CreatedAtAction("GetUser", new { id = result.UserId },
-                    new { id = result.UserId, email = result.UserEmail })
-            };
+            }
+            switch (result)
+            {
+                case UserResponseError error:
+                    switch (result.Status)
+                    {
+                        case HttpStatusCode.BadRequest:
+                            return BadRequest(error.Message);
+                        case HttpStatusCode.Conflict:
+                            return Conflict(error.Message);
+                    }
+                    break;
+                case RegisterUserResponse registration:
+                    return CreatedAtAction("GetUser", new { id = registration.UserId},
+                        new GetUserResponse(registration.UserId, registration.UserEmail));
+            }
+            
+            return BadRequest();
         }
 
         [HttpPost("login")]
@@ -83,22 +96,23 @@ namespace CSharp_BookStop.API.Controllers
         {
             var result = await authService.LoginUser(payload);
 
-            if (result.Status != HttpStatusCode.OK)
+            switch (result)
             {
-                return BadRequest(result.Message);
+                case UserResponseError:
+                    return BadRequest(result.Message);
+                case LoginUserResponse loginResult:
+                {
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Expires = DateTimeOffset.UtcNow.AddDays(14),
+                        SameSite = SameSiteMode.Lax,
+                    };
+                    HttpContext.Response.Cookies.Append("refreshToken", loginResult.RefreshToken, cookieOptions);
+                    return Ok(new TokenResponse(loginResult.Jwt));
+                }
             }
-
-
-            
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.AddDays(14),
-                SameSite = SameSiteMode.Lax,
-            };
-            HttpContext.Response.Cookies.Append("refreshToken", result.RefreshToken!, cookieOptions);
-            return Ok(new TokenResponse(result.Jwt!));
-
+            return BadRequest();
         }
 
         // DELETE: api/User/5

@@ -30,21 +30,19 @@ public class AuthService(BookStopContext dataContext, ITokenService tokenService
         return hashString;
     }
     
-    public async Task<LoginUserResponse> LoginUser(LoginUserRequest payload)
+    public async Task<IUserResponse> LoginUser(LoginUserRequest payload)
     {
         var user = await dataContext.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
 
         if (user == null)
         {
-            return new LoginUserResponse(HttpStatusCode.BadRequest, "Invalid username/password.",
-                null, null);
+            return new UserResponseError(HttpStatusCode.BadRequest, "Invalid username/password.");
         }
             
         var passwordMatch = VerifyPassword(payload.Password, Convert.FromHexString(user.PasswordSalt), user.PasswordHash);
         if (!passwordMatch)
         {
-            return new LoginUserResponse(HttpStatusCode.BadRequest, "Invalid username/password.",
-                null, null);
+            return new UserResponseError(HttpStatusCode.BadRequest, "Invalid username/password.");
         }
 
         var jwt = tokenService.CreateJwt(user);

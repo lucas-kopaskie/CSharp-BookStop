@@ -1,29 +1,25 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net;
-using System.Security.Claims;
+﻿using System.Net;
 using System.Security.Cryptography;
-using System.Text;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace CSharp_BookStop.API.Services;
 
 public class UserService(BookStopContext dataContext, IAuthService authService)
     : IUserService
 {
-    public async Task<RegisterUserResponse> RegisterUser(RegisterUserRequest payload)
+    public async Task<IUserResponse> RegisterUser(RegisterUserRequest payload)
     {
         if (payload.Password.Equals(payload.ConfirmPassword).Equals(false))
         {
-            return new RegisterUserResponse(HttpStatusCode.BadRequest,
-                "Passwords do not match.", null, null);
+            return new UserResponseError(HttpStatusCode.BadRequest, "Passwords do not match");
         }
 
         if (await dataContext.Users.AnyAsync(u => u.Email == payload.Email))
         {
-            return new RegisterUserResponse(HttpStatusCode.Conflict, "Email already in use.", null, null);
+            return new UserResponseError(HttpStatusCode.Conflict, "Email already in use.");
         }
         
         var salt = RandomNumberGenerator.GetBytes(64);
@@ -50,6 +46,6 @@ public class UserService(BookStopContext dataContext, IAuthService authService)
      dataContext.UserCarts.Add(userCart);
      await dataContext.SaveChangesAsync();
 
-     return new  RegisterUserResponse(HttpStatusCode.Created, "User created.", user.UserId, user.Email);
+     return new RegisterUserResponse(HttpStatusCode.Created, "User created.", user.UserId, user.Email);
     }
 }
