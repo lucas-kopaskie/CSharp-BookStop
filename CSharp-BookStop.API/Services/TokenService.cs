@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CSharp_BookStop.API.Services;

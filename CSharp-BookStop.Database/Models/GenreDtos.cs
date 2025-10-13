@@ -1,4 +1,4 @@
-﻿namespace CSharp_BookStop.Database.Entities;
+﻿namespace CSharp_BookStop.Database.Models;
 
 public record CreateGenreRequest(string GenreName);
 

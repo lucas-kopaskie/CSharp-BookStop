@@ -1,4 +1,5 @@
 ﻿using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 
 namespace CSharp_BookStop.API.Services;
 

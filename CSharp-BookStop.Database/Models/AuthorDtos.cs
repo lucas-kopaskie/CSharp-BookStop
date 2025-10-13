@@ -1,4 +1,4 @@
-﻿namespace CSharp_BookStop.Database.Entities;
+﻿namespace CSharp_BookStop.Database.Models;
 
 public record GetAuthorsDto(Guid AuthorId, string AuthorName);
 public record GetAuthorDto(Guid AuthorId, string AuthorName, string Biography, DateOnly DateOfBirth, 

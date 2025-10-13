@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using CSharp_BookStop.Database.Data;
-using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 using Isopoh.Cryptography.Argon2;
 using Isopoh.Cryptography.SecureArray;
 using Microsoft.EntityFrameworkCore;

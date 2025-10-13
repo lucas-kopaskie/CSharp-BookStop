@@ -1,5 +1,6 @@
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
+using CSharp_BookStop.Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

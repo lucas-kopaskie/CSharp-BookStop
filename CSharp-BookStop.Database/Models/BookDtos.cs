@@ -1,4 +1,4 @@
-﻿namespace CSharp_BookStop.Database.Entities;
+﻿namespace CSharp_BookStop.Database.Models;
 
 public record GetBookDto(Guid BookId, string Title, string Summary, decimal Price, DateOnly PublishDate, IEnumerable<ReferencedGenreDto> Genres, 
     IEnumerable<ReferencedAuthorDto> Authors);
