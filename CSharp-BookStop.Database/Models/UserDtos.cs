@@ -30,8 +30,8 @@ public class RegisterUserResponse(HttpStatusCode status, string message, Guid us
 {
     public HttpStatusCode Status { get; } = status;
     public string Message { get; } = message;
-    public Guid UserId  { get; set; } = userId;
-    public string UserEmail { get; set; } = userEmail;
+    public Guid UserId  { get; } = userId;
+    public string UserEmail { get; } = userEmail;
 }
 
 public class UserResponseError(HttpStatusCode status, string message) : IUserResponse
