@@ -30,27 +30,27 @@ public class AuthService(BookStopContext dataContext, ITokenService tokenService
         return hashString;
     }
     
-    public async Task<LoginUserResultDto> LoginUser(LoginUserDto payload)
+    public async Task<LoginUserResponse> LoginUser(LoginUserRequest payload)
     {
         var user = await dataContext.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
 
         if (user == null)
         {
-            return new LoginUserResultDto(HttpStatusCode.BadRequest, "Invalid username/password.",
+            return new LoginUserResponse(HttpStatusCode.BadRequest, "Invalid username/password.",
                 null, null);
         }
             
         var passwordMatch = VerifyPassword(payload.Password, Convert.FromHexString(user.PasswordSalt), user.PasswordHash);
         if (!passwordMatch)
         {
-            return new LoginUserResultDto(HttpStatusCode.BadRequest, "Invalid username/password.",
+            return new LoginUserResponse(HttpStatusCode.BadRequest, "Invalid username/password.",
                 null, null);
         }
 
         var jwt = tokenService.CreateJwt(user);
         var refreshToken = await tokenService.GenerateAndSaveRefreshTokenAsync(user);
             
-        return new LoginUserResultDto(HttpStatusCode.OK, "Login Successful", jwt, refreshToken);
+        return new LoginUserResponse(HttpStatusCode.OK, "Login Successful", jwt, refreshToken);
     }
     
     private static bool VerifyPassword(string password, byte[] salt, string hash)

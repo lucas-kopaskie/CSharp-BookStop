@@ -5,5 +5,5 @@ namespace CSharp_BookStop.API.Services;
 
 public interface IUserService
 {
-    public Task<RegisterUserResultDto> RegisterUser(RegisterUserDto payload);
+    public Task<RegisterUserResponse> RegisterUser(RegisterUserRequest payload);
 }

@@ -5,5 +5,5 @@ namespace CSharp_BookStop.API.Services;
 public interface IAuthService
 {
     public string HashPassword(string password, byte[] salt);
-    public Task<LoginUserResultDto> LoginUser(LoginUserDto payload);
+    public Task<LoginUserResponse> LoginUser(LoginUserRequest payload);
 }

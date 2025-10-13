@@ -2,13 +2,13 @@
 
 namespace CSharp_BookStop.Database.Entities;
 
-public record RegisterUserDto(string Email, string Password, string ConfirmPassword);
-public record RegisterUserResultDto(HttpStatusCode Status, string Message, Guid? UserId, string? UserEmail);
+public record RegisterUserRequest(string Email, string Password, string ConfirmPassword);
+public record RegisterUserResponse(HttpStatusCode Status, string Message, Guid? UserId, string? UserEmail);
 
-public record LoginUserDto(string Email, string Password);
-public record LoginUserResultDto(HttpStatusCode Status, string Message, string? Jwt, string? RefreshToken);
+public record LoginUserRequest(string Email, string Password);
+public record LoginUserResponse(HttpStatusCode Status, string Message, string? Jwt, string? RefreshToken);
 
-public record GetUserDto(Guid UserId, string Email);
+public record GetUserRequest(Guid UserId, string Email);
 
-public record TokenResponseDto(string Jwt, string RefreshToken);
-public record RefreshTokenRequestDto(Guid UserId, string RefreshToken);
+public record TokenResponse(string Jwt);
+public record RefreshTokenRequest(Guid UserId);

@@ -10,16 +10,17 @@ namespace CSharp_BookStop.API.Services;
 
 public class TokenService(IConfiguration configuration, BookStopContext dataContext) : ITokenService
 {
-    public async Task<TokenResponseDto?> RefreshTokens(RefreshTokenRequestDto payload)
+    public async Task<TokenResponse?> RefreshTokens(Guid userId, string refreshTokenCookie)
     {
-        var user = await ValidateRefreshTokenAsync(payload.UserId, payload.RefreshToken);
+        var user = await ValidateRefreshTokenAsync(userId, refreshTokenCookie);
         if (user is null)
         {
             return null;
         }
 
-        return new TokenResponseDto(CreateJwt(user), 
-            await GenerateAndSaveRefreshTokenAsync(user));
+        await GenerateAndSaveRefreshTokenAsync(user);
+
+        return new TokenResponse(CreateJwt(user));
     }
     
     public async Task<string> GenerateAndSaveRefreshTokenAsync(User user)

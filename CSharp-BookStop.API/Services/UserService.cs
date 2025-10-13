@@ -10,20 +10,20 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CSharp_BookStop.API.Services;
 
-public class UserService(BookStopContext dataContext, ITokenService tokenService, IAuthService authService)
+public class UserService(BookStopContext dataContext, IAuthService authService)
     : IUserService
 {
-    public async Task<RegisterUserResultDto> RegisterUser(RegisterUserDto payload)
+    public async Task<RegisterUserResponse> RegisterUser(RegisterUserRequest payload)
     {
         if (payload.Password.Equals(payload.ConfirmPassword).Equals(false))
         {
-            return new RegisterUserResultDto(HttpStatusCode.BadRequest,
+            return new RegisterUserResponse(HttpStatusCode.BadRequest,
                 "Passwords do not match.", null, null);
         }
 
         if (await dataContext.Users.AnyAsync(u => u.Email == payload.Email))
         {
-            return new RegisterUserResultDto(HttpStatusCode.Conflict, "Email already in use.", null, null);
+            return new RegisterUserResponse(HttpStatusCode.Conflict, "Email already in use.", null, null);
         }
         
         var salt = RandomNumberGenerator.GetBytes(64);
@@ -50,6 +50,6 @@ public class UserService(BookStopContext dataContext, ITokenService tokenService
      dataContext.UserCarts.Add(userCart);
      await dataContext.SaveChangesAsync();
 
-     return new  RegisterUserResultDto(HttpStatusCode.Created, "User created.", user.UserId, user.Email);
+     return new  RegisterUserResponse(HttpStatusCode.Created, "User created.", user.UserId, user.Email);
     }
 }

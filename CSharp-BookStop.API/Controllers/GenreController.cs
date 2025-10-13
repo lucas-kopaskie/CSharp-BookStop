@@ -29,7 +29,7 @@ namespace CSharp_BookStop.API.Controllers
             {
                 g.GenreId,
                 g.GenreName,
-                Books = g.Books.Skip(offset).Take(limit).ToList()
+                Books = g.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary)).Skip(offset).Take(limit).ToList()
                 
             }).SingleOrDefaultAsync(g => g.GenreName == genreName);
 
@@ -76,7 +76,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<Genre>> PostGenre(CreateGenreDto payload)
+        public async Task<ActionResult<Genre>> PostGenre(CreateGenreRequest payload)
         {
             var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == payload.GenreName);
             if (genre != null)

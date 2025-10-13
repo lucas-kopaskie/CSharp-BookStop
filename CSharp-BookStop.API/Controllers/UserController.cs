@@ -10,11 +10,12 @@ namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController(BookStopContext context, IUserService userService, IAuthService authService) : ControllerBase
+    public class UserController(BookStopContext context, IUserService userService, 
+        IAuthService authService, ITokenService tokenService) : ControllerBase
     {
         // GET: api/User/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetUserDto>> GetUser(Guid id)
+        public async Task<ActionResult<GetUserRequest>> GetUser(Guid id)
         {
             var user = await context.Users.FindAsync(id);
 
@@ -23,7 +24,7 @@ namespace CSharp_BookStop.API.Controllers
                 return NotFound();
             }
 
-            return new GetUserDto
+            return new GetUserRequest
                 (
                 user.UserId, user.Email
             );
@@ -64,7 +65,7 @@ namespace CSharp_BookStop.API.Controllers
         // POST: api/User
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("register")]
-        public async Task<ActionResult<GetUserDto>> RegisterUser(RegisterUserDto payload)
+        public async Task<ActionResult<GetUserRequest>> RegisterUser(RegisterUserRequest payload)
         {
             var result = await userService.RegisterUser(payload);
 
@@ -78,15 +79,26 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto>> LoginUser(LoginUserDto payload)
+        public async Task<ActionResult<TokenResponse>> LoginUser(LoginUserRequest payload)
         {
             var result = await authService.LoginUser(payload);
 
-            return result.Status switch
+            if (result.Status != HttpStatusCode.OK)
             {
-                HttpStatusCode.BadRequest => BadRequest(result.Message),
-                _ => Ok(new TokenResponseDto(result.Jwt!, result.RefreshToken!))
+                return BadRequest(result.Message);
+            }
+
+
+            
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTimeOffset.UtcNow.AddDays(14),
+                SameSite = SameSiteMode.Lax,
             };
+            HttpContext.Response.Cookies.Append("refreshToken", result.RefreshToken!, cookieOptions);
+            return Ok(new TokenResponse(result.Jwt!));
+
         }
 
         // DELETE: api/User/5
@@ -123,6 +135,24 @@ namespace CSharp_BookStop.API.Controllers
         public string Admin()
         {
             return "You are admin!";
+        }
+
+        [HttpPost("refresh-tokens")]
+        public async Task<ActionResult<TokenResponse>> RefreshTokens(RefreshTokenRequest payload)
+        {
+            var refreshTokenCookie = Request.Cookies["refreshToken"];
+
+            if (string.IsNullOrEmpty(refreshTokenCookie))
+            {
+                return BadRequest("Refresh token not found");
+            }
+            
+            var token = await tokenService.RefreshTokens(payload.UserId, refreshTokenCookie);
+            if (token == null)
+            {
+                return Unauthorized("Invalid refresh token.");
+            }
+            return Ok(new TokenResponse(token.Jwt));
         }
     }
 }

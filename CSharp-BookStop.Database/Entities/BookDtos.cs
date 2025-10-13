@@ -5,7 +5,7 @@ public record GetBookDto(Guid BookId, string Title, string Summary, decimal Pric
 
 public record GetBooksDto(Guid BookId, string Title, string Summary, DateOnly PublishDate, IEnumerable<ReferencedAuthorDto> Authors);
 
-public record CreateBookDto(string Title, string Summary, DateOnly PublishDate, decimal Price, 
+public record CreateBookRequest(string Title, string Summary, DateOnly PublishDate, decimal Price, 
     ICollection<Guid> Genres, ICollection<Guid> Authors);
 
 public record ReferencedBookDto(Guid BookId, string Title, string Summary);

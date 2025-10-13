@@ -86,7 +86,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookDto payload)
+        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookRequest payload)
         {
             Book book = new()
             {
