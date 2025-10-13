@@ -29,7 +29,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateLifetime = true,
     };
 });
-builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "CorsPolicy",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000")
+            .WithHeaders("Content-Type", "Authorization")
+            .AllowCredentials();
+        });
+});
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddAuthorization();
@@ -47,7 +57,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
