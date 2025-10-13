@@ -1,10 +1,10 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.API.Controllers
 {
@@ -102,7 +102,7 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         // DELETE: api/User/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {

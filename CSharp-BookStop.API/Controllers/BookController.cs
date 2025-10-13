@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.API.Controllers
 {
@@ -53,6 +48,7 @@ namespace CSharp_BookStop.API.Controllers
 
         // PUT: api/Book/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutBook(Guid id, Book book)
         {
@@ -84,8 +80,8 @@ namespace CSharp_BookStop.API.Controllers
 
         // POST: api/Book
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult<GetBookDto>> PostBook(CreateBookRequest payload)
         {
             Book book = new()
@@ -105,6 +101,7 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         // DELETE: api/Book/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteBook(int id)
         {

@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.API.Controllers
 {
@@ -43,6 +43,7 @@ namespace CSharp_BookStop.API.Controllers
 
         // PUT: api/Genre/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutGenre(Guid id, Genre genre)
         {
@@ -74,8 +75,8 @@ namespace CSharp_BookStop.API.Controllers
 
         // POST: api/Genre
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         public async Task<ActionResult<Genre>> PostGenre(CreateGenreRequest payload)
         {
             var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == payload.GenreName);
