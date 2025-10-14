@@ -11,31 +11,12 @@ public record GetUserResponse(Guid UserId, string Email);
 public record TokenResponse(string Jwt);
 public record RefreshTokenRequest(Guid UserId);
 
-public interface IUserResponse
-{
-    HttpStatusCode Status { get; }
-    string Message { get; }
-}
+public record UserResponse(HttpStatusCode StatusCode, string Message);
 
-public class LoginUserResponse(HttpStatusCode status, string message, string jwt, string refreshToken)
-    : IUserResponse
-{
-    public HttpStatusCode Status { get; } = status;
-    public string Message { get; } = message;
-    public string Jwt { get; } = jwt;
-    public string RefreshToken { get; } = refreshToken;
-}
+public record LoginUserResponse(HttpStatusCode StatusCode, string Message, string Jwt, string RefreshToken)
+    : UserResponse(StatusCode, Message);
 
-public class RegisterUserResponse(HttpStatusCode status, string message, Guid userId, string userEmail) : IUserResponse
-{
-    public HttpStatusCode Status { get; } = status;
-    public string Message { get; } = message;
-    public Guid UserId  { get; } = userId;
-    public string UserEmail { get; } = userEmail;
-}
+public record RegisterUserResponse(HttpStatusCode StatusCode, string Message, Guid UserId, string Email) : UserResponse(StatusCode, Message);
 
-public class UserResponseError(HttpStatusCode status, string message) : IUserResponse
-{
-    public HttpStatusCode Status { get; } = status;
-    public string Message { get; } = message;
-}
+
+public record UserResponseError(HttpStatusCode StatusCode, string Message) : UserResponse(StatusCode, Message);

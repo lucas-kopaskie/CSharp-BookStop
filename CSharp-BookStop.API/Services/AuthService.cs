@@ -30,7 +30,7 @@ public class AuthService(BookStopContext dataContext, ITokenService tokenService
         return hashString;
     }
     
-    public async Task<IUserResponse> LoginUser(LoginUserRequest payload)
+    public async Task<UserResponse> LoginUser(LoginUserRequest payload)
     {
         var user = await dataContext.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
 

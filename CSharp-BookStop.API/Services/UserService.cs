@@ -10,7 +10,7 @@ namespace CSharp_BookStop.API.Services;
 public class UserService(BookStopContext dataContext, IAuthService authService)
     : IUserService
 {
-    public async Task<IUserResponse> RegisterUser(RegisterUserRequest payload)
+    public async Task<UserResponse> RegisterUser(RegisterUserRequest payload)
     {
         if (payload.Password.Equals(payload.ConfirmPassword).Equals(false))
         {

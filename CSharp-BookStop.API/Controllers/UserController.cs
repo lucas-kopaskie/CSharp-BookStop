@@ -75,7 +75,7 @@ namespace CSharp_BookStop.API.Controllers
             switch (result)
             {
                 case UserResponseError error:
-                    switch (result.Status)
+                    switch (result.StatusCode)
                     {
                         case HttpStatusCode.BadRequest:
                             return BadRequest(error.Message);
@@ -85,7 +85,7 @@ namespace CSharp_BookStop.API.Controllers
                     break;
                 case RegisterUserResponse registration:
                     return CreatedAtAction("GetUser", new { id = registration.UserId},
-                        new GetUserResponse(registration.UserId, registration.UserEmail));
+                        new GetUserResponse(registration.UserId, registration.Email));
             }
             
             return BadRequest();
