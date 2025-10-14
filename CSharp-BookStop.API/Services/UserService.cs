@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using CSharp_BookStop.Database.Models;
@@ -20,6 +21,13 @@ public class UserService(BookStopContext dataContext, IAuthService authService)
         if (await dataContext.Users.AnyAsync(u => u.Email == payload.Email))
         {
             return new UserResponseError(HttpStatusCode.Conflict, "Email already in use.");
+        }
+
+        const string pattern = @"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$";
+        if (!Regex.IsMatch(payload.Password, pattern))
+        {
+            return new UserResponseError(HttpStatusCode.BadRequest, "Passwords must contain at least one uppercase," +
+                                                                    " one lowercase, one number and one special character.");
         }
         
         var salt = RandomNumberGenerator.GetBytes(64);
