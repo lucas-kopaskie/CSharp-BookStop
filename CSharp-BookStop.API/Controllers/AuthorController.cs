@@ -13,11 +13,15 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Author
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetAuthorsDto>>> GetAuthors([FromQuery] int offset = 0, 
+        public async Task<ActionResult<GetAuthorsResponse>> GetAuthors([FromQuery] int offset = 0, 
             [FromQuery] int limit = 10)
         {
-            return await context.Authors.OrderBy(a => a.AuthorName).Skip(offset).Take(limit)
+            var authors = await context.Authors.OrderBy(a => a.AuthorName).Skip(offset).Take(limit)
                 .Select(a => new GetAuthorsDto(a.AuthorId, a.AuthorName)).ToListAsync();
+            
+            var authorCount =  context.Authors.Count();
+
+            return new GetAuthorsResponse(authors, authorCount);
         }
 
         // GET: api/Author/5
@@ -31,9 +35,10 @@ namespace CSharp_BookStop.API.Controllers
                     a.AuthorName,
                     a.Biography,
                     a.DateOfBirth,
-                    a.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary)).Skip(offset).
-                        Take(limit).ToList())
-            ).FirstOrDefaultAsync();
+                    a.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary, 
+                            b.Authors.Select(referencedAuthor => new ReferencedAuthorDto(referencedAuthor.AuthorId, referencedAuthor.AuthorName))))
+                        .Skip(offset).Take(limit).ToList())
+            ).SingleOrDefaultAsync();
             if (author == null)
             {
                 return NotFound();
