@@ -26,11 +26,11 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Author/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetAuthorDto>> GetAuthor(Guid id, [FromQuery] int offset = 0, 
+        public async Task<ActionResult<GetAuthorResponse>> GetAuthor(Guid id, [FromQuery] int offset = 0, 
             [FromQuery] int limit = 10)
         {
             var author = await context.Authors.Where(a => a.AuthorId == id).Select(a =>
-                new GetAuthorDto(
+                new GetAuthorResponse(
                     a.AuthorId,
                     a.AuthorName,
                     a.Biography,
@@ -83,7 +83,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<Author>> PostAuthor(CreateAuthorRequest payload)
+        public async Task<ActionResult<GetAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
         {
             Author author = new()
             {

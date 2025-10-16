@@ -23,11 +23,11 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Genre/5?limit=5;offset=0
         [HttpGet("{genreName}")]
-        public async Task<ActionResult<GetGenreDto>> GetGenreAndBooks(string genreName, [FromQuery] int offset = 0,
+        public async Task<ActionResult<GetGenreResponse>> GetGenreAndBooks(string genreName, [FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
             var genre = await context.Genres.Select(g => new
-            GetGenreDto(g.GenreId, g.GenreName, 
+            GetGenreResponse(g.GenreId, g.GenreName, 
                 g.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary, 
                         b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName))))
                 .Skip(offset).Take(limit).ToList()){
@@ -77,7 +77,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<Genre>> PostGenre(CreateGenreRequest payload)
+        public async Task<ActionResult<GetGenreResponse>> PostGenre(CreateGenreRequest payload)
         {
             var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == payload.GenreName);
             if (genre != null)
@@ -93,7 +93,7 @@ namespace CSharp_BookStop.API.Controllers
             context.Genres.Add(newGenre);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGenre", new { id = newGenre.GenreId }, newGenre);
+            return CreatedAtAction("GetGenreAndBooks", new { id = newGenre.GenreId }, newGenre);
         }
 
         // DELETE: api/Genre/5

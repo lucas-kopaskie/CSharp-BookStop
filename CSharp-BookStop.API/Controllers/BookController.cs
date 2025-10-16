@@ -27,10 +27,10 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Book/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetBookDto>> GetBook(Guid id)
+        public async Task<ActionResult<GetBookResponse>> GetBook(Guid id)
         {
             var book = await context.Books.Where(b => b.BookId == id).Select(b =>
-                new GetBookDto(b.BookId,
+                new GetBookResponse(b.BookId,
                     b.Title,
                     b.Summary,
                     b.Price,
@@ -87,7 +87,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookRequest payload)
+        public async Task<ActionResult<GetBookResponse>> PostBook(CreateBookRequest payload)
         {
             Book book = new()
             {
@@ -108,7 +108,7 @@ namespace CSharp_BookStop.API.Controllers
         // DELETE: api/Book/5
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteBook(int id)
+        public async Task<IActionResult> DeleteBook(Guid id)
         {
             var book = await context.Books.FindAsync(id);
             if (book == null)
