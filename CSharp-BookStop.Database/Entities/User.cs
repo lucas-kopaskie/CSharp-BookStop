@@ -19,5 +19,5 @@ public class User
     [MaxLength(8)]
     public required string Role { get; set; } = "User";
     
-    public UserCart? UserCart { get; set; }
+    public Cart? Cart { get; set; }
 }

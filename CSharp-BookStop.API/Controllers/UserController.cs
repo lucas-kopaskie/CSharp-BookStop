@@ -146,9 +146,9 @@ namespace CSharp_BookStop.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("/admin")]
-        public string Admin()
+        public ActionResult Admin()
         {
-            return "You are admin!";
+            return Ok();
         }
 
         [HttpPost("refresh-tokens")]

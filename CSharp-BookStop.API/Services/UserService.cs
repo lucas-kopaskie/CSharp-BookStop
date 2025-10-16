@@ -44,14 +44,14 @@ public class UserService(BookStopContext dataContext, IAuthService authService)
             Role = "User"
         };
 
-        UserCart userCart = new()
+        Cart userCart = new()
         {
             UserId = user.UserId,
-            UserCartId = Guid.NewGuid(),
+            CartId = Guid.NewGuid(),
         };
         
      dataContext.Users.Add(user);
-     dataContext.UserCarts.Add(userCart);
+     dataContext.Carts.Add(userCart);
      await dataContext.SaveChangesAsync();
 
      return new RegisterUserResponse(HttpStatusCode.Created, "User created.", user.UserId, user.Email);
