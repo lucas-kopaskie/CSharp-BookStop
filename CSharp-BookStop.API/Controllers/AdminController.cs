@@ -1,0 +1,50 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+
+namespace CSharp_BookStop.API.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdminController(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager) : ControllerBase
+    {
+        private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+        private readonly UserManager<IdentityUser> _userManager = userManager;
+        
+        // POST: api/Admin/addRole
+        [HttpPost("addRole")]
+        public async Task<IActionResult> CreateRole(string roleName)
+        {
+            if (await _roleManager.RoleExistsAsync(roleName))
+            {
+                return Conflict("Role already exists");
+            }
+            
+            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
+            if (result.Succeeded)
+            {
+                return Created(roleName, roleName);
+            }
+            return BadRequest(result.Errors);
+        }
+        
+        // POST: api/Admin/addUserToRole
+        [HttpPost("addUserToRole")]
+        public async Task<IActionResult> AddUserToRole(string roleName, Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+            return BadRequest(result.Errors);
+        }
+    }
+}
