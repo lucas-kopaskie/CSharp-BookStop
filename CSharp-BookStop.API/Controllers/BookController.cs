@@ -16,8 +16,8 @@ namespace CSharp_BookStop.API.Controllers
         public async Task<ActionResult<GetBooksResponse>> GetBooks([FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
-            var books = await context.Books.OrderBy(b => b.Title).Skip(offset).Take(limit)
-                .Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
+            var books = await context.Books.OrderBy(b => b.Title).ThenBy(b => b.BookId).
+                Skip(offset).Take(limit).Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
                     b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToListAsync();
 
             var bookCount = context.Books.Count();

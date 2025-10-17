@@ -38,16 +38,19 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Author/booksByAuthor/5
         [HttpGet("booksByAuthor/{id:Guid}")]
-        public async Task<ActionResult<GetBooksResponse>> GetBooksByAuthor(Guid id)
+        public async Task<ActionResult<GetBooksByAuthorResponse>> GetBooksByAuthor(Guid id)
         {
-            var books = await context.Books.OrderBy(b => b.Title).ThenBy(b => b.BookId).
-                Where(b => b.Authors.Any(a => a.AuthorId == id))
-                .Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
-                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToListAsync();
+            var authorBooks = await context.Authors.Where(a => a.AuthorId == id).Include(a => a.Books)
+                .Select(a => new GetBooksByAuthorResponse(a.AuthorId, a.AuthorName, a.Biography, a.DateOfBirth, context.Authors.Count(author => author.AuthorId == id),
+                    a.Books.Select(b => 
+                        new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(a => 
+                            new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToList())
+                )
+                .SingleOrDefaultAsync();
 
-            var bookCount = books.Count;
-
-            return new GetBooksResponse(books, bookCount);
+            if (authorBooks != null) return authorBooks;
+            return NotFound();
+            
         }
 
         // PUT: api/Author/5
