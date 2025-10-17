@@ -26,25 +26,28 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Author/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetAuthorResponse>> GetAuthor(Guid id, [FromQuery] int offset = 0, 
-            [FromQuery] int limit = 10)
+        public async Task<ActionResult<GetAuthorResponse>> GetAuthor([FromRoute] Guid id)
         {
-            var author = await context.Authors.Where(a => a.AuthorId == id).Select(a =>
-                new GetAuthorResponse(
-                    a.AuthorId,
-                    a.AuthorName,
-                    a.Biography,
-                    a.DateOfBirth,
-                    a.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary, 
-                            b.Authors.Select(referencedAuthor => new ReferencedAuthorDto(referencedAuthor.AuthorId, referencedAuthor.AuthorName))))
-                        .Skip(offset).Take(limit).ToList())
-            ).SingleOrDefaultAsync();
+            var author = await context.Authors.FindAsync(id);
             if (author == null)
             {
                 return NotFound();
             }
+            return new GetAuthorResponse(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth);
+        }
 
-            return author;
+        // GET: api/Author/booksByAuthor/5
+        [HttpGet("booksByAuthor/{id:Guid}")]
+        public async Task<ActionResult<GetBooksResponse>> GetBooksByAuthor(Guid id)
+        {
+            var books = await context.Books.OrderBy(b => b.Title).ThenBy(b => b.BookId).
+                Where(b => b.Authors.Any(a => a.AuthorId == id))
+                .Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToListAsync();
+
+            var bookCount = books.Count;
+
+            return new GetBooksResponse(books, bookCount);
         }
 
         // PUT: api/Author/5
@@ -83,7 +86,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
+        public async Task<ActionResult<GetBooksByAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
         {
             Author author = new()
             {
