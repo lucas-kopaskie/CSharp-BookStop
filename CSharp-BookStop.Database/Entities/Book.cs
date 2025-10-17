@@ -13,7 +13,8 @@ public class Book
     public required string Summary { get; set; }
     public required DateOnly PublishDate { get; set; }
     public required decimal Price { get; set; }
-    
+    public Series? Series { get; set; }
+    public int? SeriesNumber { get; set; }
     public required ICollection<Genre> Genres { get; set; }
     public required ICollection<Author> Authors { get; set; }
     

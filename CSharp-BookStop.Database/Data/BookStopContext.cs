@@ -12,4 +12,5 @@ public class BookStopContext(DbContextOptions<BookStopContext> options) : Identi
     public DbSet<Book>  Books { get; set; }
     public DbSet<Cart>  Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+    public DbSet<Series> Series { get; set; }
 }
