@@ -86,7 +86,7 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetBooksByAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
+        public async Task<ActionResult<GetAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
         {
             Author author = new()
             {
