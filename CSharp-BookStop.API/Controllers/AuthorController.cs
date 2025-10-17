@@ -43,8 +43,8 @@ namespace CSharp_BookStop.API.Controllers
             var authorBooks = await context.Authors.Where(a => a.AuthorId == id).Include(a => a.Books)
                 .Select(a => new GetBooksByAuthorResponse(a.AuthorId, a.AuthorName, a.Biography, a.DateOfBirth, context.Authors.Count(author => author.AuthorId == id),
                     a.Books.Select(b => 
-                        new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(a => 
-                            new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToList())
+                        new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(author => 
+                            new ReferencedAuthorDto(author.AuthorId, author.AuthorName)))).ToList())
                 )
                 .SingleOrDefaultAsync();
 
