@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace CSharp_BookStop.Database.Entities;
 
+[Index(nameof(AuthorName), nameof(AuthorId))]
 public class Author
 {
     public required Guid AuthorId {get; set;}
