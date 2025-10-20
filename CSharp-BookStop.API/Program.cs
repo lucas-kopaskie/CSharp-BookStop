@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<BookStopContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));;
+    options.UseNpgsql(builder.Configuration["DefaultConnection"]));
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddRoles<IdentityRole>().
     AddEntityFrameworkStores<BookStopContext>();
 var app = builder.Build();
