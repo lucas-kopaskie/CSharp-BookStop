@@ -1,15 +1,17 @@
+using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using CSharp_BookStop.Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UUIDNext;
 
 namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthorController(BookStopContext context) : ControllerBase
+    public class AuthorController(BookStopContext context, DataService dataService) : ControllerBase
     {
         // GET: api/Author
         [HttpGet]
@@ -17,7 +19,7 @@ namespace CSharp_BookStop.API.Controllers
             [FromQuery] int limit = 10)
         {
             var authors = await context.Authors.OrderBy(a => a.AuthorName).Skip(offset).Take(limit)
-                .Select(a => new GetAuthorsDto(a.AuthorId, a.AuthorName)).ToListAsync();
+                .Select(a => new GetAuthorsDto(a.AuthorId, a.AuthorName, a.Slug)).ToListAsync();
             
             var authorCount =  context.Authors.Count();
 
@@ -33,7 +35,7 @@ namespace CSharp_BookStop.API.Controllers
             {
                 return NotFound();
             }
-            return new GetAuthorResponse(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth);
+            return new GetAuthorResponse(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
         }
 
         // GET: api/Author/booksByAuthor/5
@@ -44,7 +46,7 @@ namespace CSharp_BookStop.API.Controllers
                 .Select(a => new GetBooksByAuthorResponse(a.AuthorId, a.AuthorName, a.Biography, a.DateOfBirth, context.Authors.Count(author => author.AuthorId == id),
                     a.Books.Select(b => 
                         new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(author => 
-                            new ReferencedAuthorDto(author.AuthorId, author.AuthorName)))).ToList())
+                            new ReferencedAuthorDto(author.AuthorId, author.AuthorName, author.Slug)), b.Slug)).ToList())
                 )
                 .SingleOrDefaultAsync();
 
@@ -57,14 +59,19 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> PutAuthor(Guid id, Author author)
+        public async Task<IActionResult> PutAuthor(Guid id, UpdateAuthorRequest request)
         {
-            if (id != author.AuthorId)
-            {
-                return BadRequest();
-            }
+            var author = await context.Authors.FindAsync(id);
 
-            context.Entry(author).State = EntityState.Modified;
+            if (author == null || id != request.AuthorId)
+            {
+                return NotFound();
+            }
+            
+            author.AuthorName = request.AuthorName;
+            author.Biography = request.Biography;
+            author.DateOfBirth = request.DateOfBirth;
+            author.Slug = dataService.GenerateSlug(author.AuthorId, request.AuthorName);
 
             try
             {
@@ -89,15 +96,17 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetAuthorResponse>> PostAuthor(CreateAuthorRequest payload)
+        public async Task<ActionResult<GetAuthorResponse>> PostAuthor(CreateAuthorRequest request)
         {
+            var authorId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
             Author author = new()
             {
-                AuthorId = Guid.NewGuid(),
-                AuthorName = payload.AuthorName,
-                Biography = payload.Biography,
-                DateOfBirth = payload.DateOfBirth,
-                Books = new List<Book>()
+                AuthorId = authorId,
+                AuthorName = request.AuthorName,
+                Biography = request.Biography,
+                DateOfBirth = request.DateOfBirth,
+                Books = new List<Book>(),
+                Slug = dataService.GenerateSlug(authorId, request.AuthorName),
             };
             
             context.Authors.Add(author);

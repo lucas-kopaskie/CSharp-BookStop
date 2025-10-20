@@ -1,28 +1,41 @@
 using System.Collections.ObjectModel;
+using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using CSharp_BookStop.Database.Entities;
 using CSharp_BookStop.Database.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using UUIDNext;
 
 namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SeriesController(BookStopContext context) : ControllerBase
+    public class SeriesController(BookStopContext context, DataService dataService) : ControllerBase
     {
         // GET: api/Series
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Series>>> GetSeries()
+        public async Task<ActionResult<GetSeriesPluralResponse>> GetSeries([FromQuery] int offset = 0, [FromQuery] int limit = 10)
         {
-            return await context.Series.ToListAsync();
+            var series = await context.Series.OrderBy(s => s.Name).ThenBy(s => s.SeriesId).
+                Skip(offset).Take(limit).Select(s => new GetSeriesDto(s.SeriesId, s.Name, s.Slug)).ToListAsync();
+
+            var seriesCount = context.Series.Count();
+
+            return new GetSeriesPluralResponse(series, seriesCount);
         }
 
         // GET: api/Series/5
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult<Series>> GetSeries(Guid id)
+        [HttpGet("{slug:required}")]
+        public async Task<ActionResult<GetSeriesResponse>> GetSeries(string slug)
         {
-            var series = await context.Series.FindAsync(id);
+            var series = await context.Series.Where(s => s.Slug == slug).Select(s => new GetSeriesResponse(
+                s.SeriesId,
+                s.Name,
+                s.Books.Select(b => new ReferencedBookDto(b.BookId, b.Title, b.Summary,
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)), b.Slug))))
+                .SingleOrDefaultAsync();
 
             if (series == null)
             {
@@ -34,15 +47,18 @@ namespace CSharp_BookStop.API.Controllers
 
         // PUT: api/Series/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> PutSeries(Guid id, Series series)
+        public async Task<IActionResult> PutSeries([FromRoute] Guid id, [FromBody] UpdateSeriesRequest request)
         {
-            if (id != series.SeriesId)
+            var series = await context.Series.FindAsync(id);
+            if (series == null || id != request.SeriesId)
             {
                 return BadRequest();
             }
-
-            context.Entry(series).State = EntityState.Modified;
+            
+            series.Name = request.Name;
+            series.Slug = dataService.GenerateSlug(id, request.Name);
 
             try
             {
@@ -66,13 +82,15 @@ namespace CSharp_BookStop.API.Controllers
         // POST: api/Series
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Series>> PostSeries(CreateSeriesRequest payload)
+        public async Task<ActionResult<Series>> PostSeries(CreateSeriesRequest request)
         {
+            var seriesId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
             Series series = new()
             {
-                SeriesId = Guid.NewGuid(),
-                Name = payload.Name,
-                Books = new Collection<Book>()
+                SeriesId = seriesId,
+                Name = request.Name,
+                Books = new Collection<Book>(),
+                Slug = dataService.GenerateSlug(seriesId, request.Name)
             };
             context.Series.Add(series);
             await context.SaveChangesAsync();

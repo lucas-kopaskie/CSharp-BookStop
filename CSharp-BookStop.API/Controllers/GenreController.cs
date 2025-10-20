@@ -41,7 +41,7 @@ namespace CSharp_BookStop.API.Controllers
                 .Select(g => new GetBooksByGenreResponse(g.GenreId, g.GenreName, context.Genres.Count(genre => genre.GenreName == genreName),
                     g.Books.Select(b => 
                         new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(a => 
-                            new ReferencedAuthorDto(a.AuthorId, a.AuthorName)))).ToList())
+                            new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)), b.Slug)).ToList())
                 )
                 .SingleOrDefaultAsync();
 
@@ -53,14 +53,15 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> PutGenre(Guid id, Genre genre)
+        public async Task<IActionResult> PutGenre(Guid id, UpdateGenreRequest request)
         {
-            if (id != genre.GenreId)
+            var genre = await context.Genres.FindAsync(id);
+            if (genre is null || id != request.GenreId)
             {
                 return BadRequest();
             }
 
-            context.Entry(genre).State = EntityState.Modified;
+            genre.GenreName = request.GenreName;
 
             try
             {
@@ -85,9 +86,9 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetGenreResponse>> PostGenre(CreateGenreRequest payload)
+        public async Task<ActionResult<GetGenreResponse>> PostGenre(CreateGenreRequest request)
         {
-            var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == payload.GenreName);
+            var genre = await context.Genres.SingleOrDefaultAsync(g => g.GenreName == request.GenreName);
             if (genre != null)
             {
                 return Conflict("Genre already exists.");
@@ -96,7 +97,7 @@ namespace CSharp_BookStop.API.Controllers
             Genre newGenre = new()
             {
                 GenreId = Guid.NewGuid(),
-                GenreName = payload.GenreName
+                GenreName = request.GenreName
             };
             context.Genres.Add(newGenre);
             await context.SaveChangesAsync();

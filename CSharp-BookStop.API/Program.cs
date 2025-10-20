@@ -1,3 +1,4 @@
+using CSharp_BookStop.API.Services;
 using CSharp_BookStop.Database.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<BookStopContext>(options =>
     options.UseNpgsql(builder.Configuration["DefaultConnection"]));
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddRoles<IdentityRole>().
     AddEntityFrameworkStores<BookStopContext>();
+builder.Services.AddScoped<IDataService, DataService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
