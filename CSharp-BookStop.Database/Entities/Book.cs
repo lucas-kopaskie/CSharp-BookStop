@@ -8,9 +8,9 @@ namespace CSharp_BookStop.Database.Entities;
 public class Book
 {
     public Guid BookId { get; set; }
-    [MaxLength(32)]
+    [MaxLength(64)]
     public required string Title { get; set; }
-    [MaxLength(1024)]
+    [MaxLength(2048)]
     public required string Summary { get; set; }
     public required DateOnly PublishDate { get; set; }
     [Precision(18,2)]
