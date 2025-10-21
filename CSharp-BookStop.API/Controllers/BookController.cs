@@ -11,7 +11,7 @@ namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookController(BookStopContext context, DataService dataService) : ControllerBase
+    public class BookController(BookStopContext context, IDataService dataService) : ControllerBase
     {
         // GET: api/Book
         [HttpGet]
