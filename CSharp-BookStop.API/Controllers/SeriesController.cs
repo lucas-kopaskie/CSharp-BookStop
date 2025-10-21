@@ -95,7 +95,7 @@ namespace CSharp_BookStop.API.Controllers
             context.Series.Add(series);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSeries", new { id = series.SeriesId }, series);
+            return CreatedAtAction("GetSeries", new { slug = series.Slug }, series);
         }
 
         // DELETE: api/Series/5

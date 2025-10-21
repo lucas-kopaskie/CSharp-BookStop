@@ -13,32 +13,46 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Genre?limit=5;offset=0
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetGenreResponse>>> GetGenres([FromQuery] int offset = 0,
+        public async Task<ActionResult<GetGenresResponse>> GetGenres([FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
-            return await context.Genres.OrderBy(g => g.GenreName).
+            var genres = await context.Genres.OrderBy(g => g.GenreName).
                 Skip(offset).Take(limit).Select(g => 
-                new GetGenreResponse(g.GenreId, g.GenreName)).ToListAsync();
+                new GetGenreDto(g.GenreId, g.GenreName)).ToListAsync();
+            
+            var count = context.Genres.Count();
+
+            return new GetGenresResponse(genres, count);
         }
         
         // GET: api/Genre/Fantasy
         [HttpGet("{genreName}")]
-        public async Task<ActionResult<GetGenreResponse>> GetGenre(string genreName)
+        public async Task<ActionResult<GetGenreResponse>> GetGenreByName(string genreName)
         {
-            var genre =  await context.Genres.FirstOrDefaultAsync(g => g.GenreName == genreName);
+            var genre =  await context.Genres.Where(g => g.GenreName == genreName).Select(g => 
+                new GetGenreResponse(g.GenreId, g.GenreName, g.SubGenres != null ? g.SubGenres.Select(
+                    subgenre => new ReferencedGenreDto(subgenre.GenreId, subgenre.GenreName)).ToList() : null)).SingleOrDefaultAsync();
+            
             if (genre == null)
             {
                 return NotFound();
             }
-            return new GetGenreResponse(genre.GenreId, genre.GenreName);
+            
+            return genre;
         }
 
         // GET: api/Genre/Fantasy/books
         [HttpGet("{genreName:required}/books")]
         public async Task<ActionResult<GetBooksByGenreResponse>> GetBooksByGenre([FromRoute] string genreName, [FromQuery]  int offset = 0, [FromQuery] int limit = 10)
         {
+            var genre = await context.Genres.Where(g => g.GenreName == genreName).SingleOrDefaultAsync();
+            if (genre == null)
+            {
+                return NotFound();
+            }
+            
             var genreBooks = await context.Genres.Where(g => g.GenreName == genreName).Include(g => g.Books)
-                .Select(g => new GetBooksByGenreResponse(g.GenreId, g.GenreName, context.Genres.Count(genre => genre.GenreName == genreName),
+                .Select(g => new GetBooksByGenreResponse(g.GenreId, g.GenreName, context.Books.Count(book => book.Genres.Contains(genre)),
                     g.Books.Select(b => 
                         new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(a => 
                             new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)), b.Slug)).ToList())
@@ -97,12 +111,15 @@ namespace CSharp_BookStop.API.Controllers
             Genre newGenre = new()
             {
                 GenreId = Guid.NewGuid(),
-                GenreName = request.GenreName
+                GenreName = request.GenreName,
+                ParentGenre = request.ParentGenreId is not null ?  await context.Genres.FirstOrDefaultAsync(g => g.GenreId == request.ParentGenreId) : null 
             };
             context.Genres.Add(newGenre);
             await context.SaveChangesAsync();
+            
+            var responseGenre = new GetGenreDto(newGenre.GenreId, newGenre.GenreName);
 
-            return CreatedAtAction("GetGenre", new { id = newGenre.GenreId }, newGenre);
+            return CreatedAtAction("GetGenreByName", new { genreName = newGenre.GenreName }, responseGenre);
         }
 
         // DELETE: api/Genre/5
