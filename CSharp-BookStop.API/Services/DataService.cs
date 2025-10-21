@@ -4,8 +4,8 @@ public class DataService : IDataService
 {
     public string GenerateSlug(Guid id, string identifier)
     {
-        var frontSeven = id.ToString()[..7];
+        var frontEight = id.ToString()[..8];
         var normalizedIdentifier = Uri.EscapeDataString(identifier).ToLower();
-        return normalizedIdentifier + "-" + frontSeven;
+        return normalizedIdentifier + "-" + frontEight;
     }
 }
