@@ -38,20 +38,42 @@ namespace CSharp_BookStop.API.Controllers
             return new GetAuthorResponse(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
         }
 
-        // GET: api/Author/booksByAuthor/5
-        [HttpGet("booksByAuthor/{id:Guid}")]
-        public async Task<ActionResult<GetBooksByAuthorResponse>> GetBooksByAuthor(Guid id)
+        // GET: api/Author/019a0869-7992-7380-8379-c819abaa00e7/books
+        [HttpGet("{id:guid}/books")]
+        public async Task<ActionResult<GetBooksByAuthorResponse>> GetBooksByAuthor([FromRoute] Guid id, 
+            [FromQuery] int offset = 0, [FromQuery] int limit = 10)
         {
-            var authorBooks = await context.Authors.Where(a => a.AuthorId == id).Include(a => a.Books)
-                .Select(a => new GetBooksByAuthorResponse(a.AuthorId, a.AuthorName, a.Biography, a.DateOfBirth, context.Authors.Count(author => author.AuthorId == id),
-                    a.Books.Select(b => 
-                        new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(author => 
-                            new ReferencedAuthorDto(author.AuthorId, author.AuthorName, author.Slug)), b.Slug)).ToList())
+            var authorBooks = await context.Authors
+                .Include(a => a.Books)
+                .ThenInclude(b => b.Genres)
+                .Where(a => a.AuthorId == id)
+                .Select(a => new GetBooksByAuthorResponse(
+                    a.AuthorId, 
+                    a.AuthorName, 
+                    a.Biography, 
+                    a.DateOfBirth,
+                    a.Books.Count(),
+                    a.Books
+                        .OrderBy(b => b.BookId)
+                        .Skip(offset)
+                        .Take(limit)
+                        .Select(b => new ReferencedBookDto(
+                            b.BookId, 
+                            b.Title, 
+                            b.Summary, 
+                            b.Authors
+                                .Select(author =>
+                                    new ReferencedAuthorDto(author.AuthorId, author.AuthorName, author.Slug)).ToList(),
+                            b.Slug))
+                        .ToList())
                 )
                 .SingleOrDefaultAsync();
 
-            if (authorBooks != null) return authorBooks;
-            return NotFound();
+            if (authorBooks == null)
+            {
+                return NotFound();
+            }
+            return authorBooks;
             
         }
 

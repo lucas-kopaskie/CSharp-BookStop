@@ -18,9 +18,19 @@ namespace CSharp_BookStop.API.Controllers
         public async Task<ActionResult<GetBooksResponse>> GetBooks([FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
-            var books = await context.Books.OrderBy(b => b.Title).ThenBy(b => b.BookId).
-                Skip(offset).Take(limit).Select(b => new GetBooksDto(b.BookId, b.Title, b.Summary, b.PublishDate, 
-                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)), b.Slug))
+            var books = await context.Books
+                .Include(b => b.Authors)
+                .OrderBy(b => b.Title)
+                .ThenBy(b => b.BookId)
+                .Skip(offset)
+                .Take(limit)
+                .Select(b => new GetBooksDto(
+                    b.BookId, 
+                    b.Title, 
+                    b.Summary, 
+                    b.PublishDate, 
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)).ToList(), 
+                    b.Slug))
                 .ToListAsync();
 
             var bookCount = context.Books.Count();
@@ -29,20 +39,49 @@ namespace CSharp_BookStop.API.Controllers
         }
 
         // GET: api/Book/bill%20bob-rqf380f
-        [HttpGet("{slug:required}")]
-        public async Task<ActionResult<GetBookResponse>> GetBook(string slug)
+        [HttpGet("bySlug/{slug:required}")]
+        public async Task<ActionResult<GetBookResponse>> GetBookBySlug(string slug)
         {
-            var book = await context.Books.Where(b => b.Slug == slug).Select(b =>
+            var book = await context.Books
+                .Include(b => b.Authors)
+                .Include(b => b.Genres)
+                .Where(b => b.Slug == slug).Select(b =>
                 new GetBookResponse(b.BookId,
                     b.Title,
                     b.Summary,
                     b.Price,
                     b.PublishDate,
                     b.Genres.Select(g => new ReferencedGenreDto(g.GenreId,
-                        g.GenreName)
-                    {
+                        g.GenreName)),
+                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)),
+                    b.Slug)
+            ).FirstOrDefaultAsync();
 
-                    }),
+            
+            
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return book;
+        }
+        
+        // GET: api/Book/{guid}
+        [HttpGet("byId/{id:guid}")]
+        public async Task<ActionResult<GetBookResponse>> GetBookById(Guid id)
+        {
+            var book = await context.Books
+                .Include(b => b.Authors)
+                .Include(b => b.Genres)
+                .Where(b => b.BookId == id).Select(b =>
+                new GetBookResponse(b.BookId,
+                    b.Title,
+                    b.Summary,
+                    b.Price,
+                    b.PublishDate,
+                    b.Genres.Select(g => new ReferencedGenreDto(g.GenreId,
+                        g.GenreName)),
                     b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)),
                     b.Slug)
             ).FirstOrDefaultAsync();
@@ -112,6 +151,23 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPost]
         public async Task<ActionResult<GetBookResponse>> PostBook(CreateBookRequest request)
         {
+            
+            // Ensure that all subgenres added to a book also have their parent genre added.
+            var genres = await context.Genres.Where(g => request.Genres.Contains(g.GenreId)).Select(g => new
+            {
+                g.GenreId,
+                g.ParentGenre
+            }).ToListAsync();
+            foreach (var genre in genres.ToList())
+            {
+                if (genre.ParentGenre is null || request.Genres.Contains(genre.ParentGenre.GenreId))
+                {
+                    continue;
+                }
+                
+                request.Genres.Add(genre.ParentGenre.GenreId);
+            }
+            
             var bookId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
             Book book = new()
             {
@@ -126,8 +182,11 @@ namespace CSharp_BookStop.API.Controllers
             };
             context.Books.Add(book);
             await context.SaveChangesAsync();
+            
+            var bookResponse = new GetBooksDto(book.BookId, book.Title, book.Summary, book.PublishDate, 
+                book.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)).ToList(), book.Slug);
 
-            return CreatedAtAction("GetBook", new { id = book.BookId }, book);
+            return CreatedAtAction("GetBookById", new { id = book.BookId }, bookResponse);
         }
 
         // DELETE: api/Book/5

@@ -31,7 +31,8 @@ namespace CSharp_BookStop.API.Controllers
         {
             var genre =  await context.Genres.Where(g => g.GenreName == genreName).Select(g => 
                 new GetGenreResponse(g.GenreId, g.GenreName, g.SubGenres != null ? g.SubGenres.Select(
-                    subgenre => new ReferencedGenreDto(subgenre.GenreId, subgenre.GenreName)).ToList() : null)).SingleOrDefaultAsync();
+                    subgenre => new ReferencedGenreDto(subgenre.GenreId, subgenre.GenreName)).ToList()
+                    : null)).SingleOrDefaultAsync();
             
             if (genre == null)
             {
@@ -43,24 +44,39 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Genre/Fantasy/books
         [HttpGet("{genreName:required}/books")]
-        public async Task<ActionResult<GetBooksByGenreResponse>> GetBooksByGenre([FromRoute] string genreName, [FromQuery]  int offset = 0, [FromQuery] int limit = 10)
+        public async Task<ActionResult<GetBooksByGenreResponse>> GetBooksByGenre([FromRoute] string genreName,
+            [FromQuery] int offset = 0, [FromQuery] int limit = 10)
         {
-            var genre = await context.Genres.Where(g => g.GenreName == genreName).SingleOrDefaultAsync();
-            if (genre == null)
+            var genreBooks = await context.Genres
+                .Include(g => g.Books)
+                .ThenInclude(b => b.Authors)
+                .Where(g => g.GenreName == genreName)
+                .Select(g =>
+                    new GetBooksByGenreResponse(
+                        g.GenreId,
+                        g.GenreName, 
+                        g.Books.Count(),
+                        g.Books
+                            .OrderBy(b => b.BookId)
+                            .Skip(offset)
+                            .Take(limit)
+                            .Select(b => new ReferencedBookDto(
+                                b.BookId,
+                                b.Title,
+                                b.Summary,
+                                b.Authors
+                                    .Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug))
+                                    .ToList(),
+                                b.Slug))
+                            .ToList()
+                        ))
+                .SingleOrDefaultAsync();
+            
+            if (genreBooks == null)
             {
                 return NotFound();
-            }
-            
-            var genreBooks = await context.Genres.Where(g => g.GenreName == genreName).Include(g => g.Books)
-                .Select(g => new GetBooksByGenreResponse(g.GenreId, g.GenreName, context.Books.Count(book => book.Genres.Contains(genre)),
-                    g.Books.Select(b => 
-                        new ReferencedBookDto(b.BookId, b.Title, b.Summary, b.Authors.Select(a => 
-                            new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)), b.Slug)).ToList())
-                )
-                .SingleOrDefaultAsync();
-
-            if (genreBooks != null) return genreBooks;
-            return NotFound();
+            };
+            return genreBooks;
         }
 
         // PUT: api/Genre/5
@@ -112,7 +128,9 @@ namespace CSharp_BookStop.API.Controllers
             {
                 GenreId = Guid.NewGuid(),
                 GenreName = request.GenreName,
-                ParentGenre = request.ParentGenreId is not null ?  await context.Genres.FirstOrDefaultAsync(g => g.GenreId == request.ParentGenreId) : null 
+                ParentGenre = request.ParentGenreId is not null
+                    ? await context.Genres.FirstOrDefaultAsync(g => g.GenreId == request.ParentGenreId)
+                    : null 
             };
             context.Genres.Add(newGenre);
             await context.SaveChangesAsync();
