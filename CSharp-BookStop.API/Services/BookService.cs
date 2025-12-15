@@ -84,7 +84,7 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
         return new GetBooksDto(books, bookCount);
     }
 
-    public async Task<GetBookDto> CreateBook(CreateBookRequest request)
+    public async Task<OneOf<GetBookDto, Error<string>>> CreateBook(CreateBookRequest request)
     {
         // Ensure that all subgenres added to a book also have their parent genre added.
         var genres = await context.Genres.Where(g => request.Genres.Contains(g.GenreId)).Select(g => new
@@ -114,8 +114,16 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
             Authors = context.Authors.Where(a => request.Authors.Contains(a.AuthorId)).ToList(),
             Slug = dataService.GenerateSlug(bookId, request.Title)
         };
-        context.Books.Add(book);
-        await context.SaveChangesAsync();
+        try
+        {
+            context.Books.Add(book);
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return new Error<string>("An error occurred while adding your book.");
+        }
+
             
         var bookResponse = new GetBookDto(book.BookId, book.Title, book.Summary, book.Price, book.PublishDate,
             book.Genres.Select(g => new ReferencedGenreDto(g.GenreId, g.GenreName)).ToList(), 

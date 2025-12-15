@@ -61,7 +61,9 @@ namespace CSharp_BookStop.API.Controllers
         {
             var createBookResult = await bookService.CreateBook(request);
             
-            return CreatedAtAction("GetBookById", new { id = createBookResult.BookId }, createBookResult);
+            return createBookResult.Match<ActionResult<GetBookDto>>(
+                dto => CreatedAtAction("GetBookById", new { id = dto.BookId, dto }),
+                error => StatusCode(500, error));
         }
 
         // DELETE: api/Book/5
