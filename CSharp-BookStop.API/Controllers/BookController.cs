@@ -24,7 +24,7 @@ namespace CSharp_BookStop.API.Controllers
             var searchResult = await bookService.GetBookBySlug(slug);
 
             return searchResult.Match<ActionResult<GetBookDto>>(
-                dto => dto,
+                dto => Ok(dto),
                 notFound => NotFound());
         }
         
@@ -35,7 +35,7 @@ namespace CSharp_BookStop.API.Controllers
             var  searchResult = await bookService.GetBookById(id);
             
             return searchResult.Match<ActionResult<GetBookDto>>(
-                dto => dto,
+                dto => Ok(dto),
                 notFound => NotFound());
         }
 
