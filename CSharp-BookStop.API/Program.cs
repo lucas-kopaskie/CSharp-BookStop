@@ -30,6 +30,7 @@ builder.Services.AddDbContext<BookStopContext>(options =>
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddRoles<IdentityRole>().
     AddEntityFrameworkStores<BookStopContext>();
 builder.Services.AddScoped<IDataService, DataService>();
+builder.Services.AddScoped<IBookService, BookService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

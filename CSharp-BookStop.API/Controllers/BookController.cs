@@ -1,97 +1,42 @@
 using CSharp_BookStop.API.Services;
-using CSharp_BookStop.Database.Data;
-using CSharp_BookStop.Database.Entities;
 using CSharp_BookStop.Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UUIDNext;
 
 namespace CSharp_BookStop.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookController(BookStopContext context, IDataService dataService) : ControllerBase
+    public class BookController(IBookService bookService) : ControllerBase
     {
         // GET: api/Book
         [HttpGet]
-        public async Task<ActionResult<GetBooksResponse>> GetBooks([FromQuery] int offset = 0,
+        public async Task<ActionResult<GetBooksDto>> GetBooks([FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
-            var books = await context.Books
-                .Include(b => b.Authors)
-                .OrderBy(b => b.Title)
-                .ThenBy(b => b.BookId)
-                .Skip(offset)
-                .Take(limit)
-                .Select(b => new GetBooksDto(
-                    b.BookId, 
-                    b.Title, 
-                    b.Summary, 
-                    b.PublishDate, 
-                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)).ToList(), 
-                    b.Slug))
-                .ToListAsync();
-
-            var bookCount = context.Books.Count();
-            
-            return new GetBooksResponse(books, bookCount);
+            return await bookService.GetBooks(offset, limit);
         }
 
         // GET: api/Book/bill%20bob-rqf380f
         [HttpGet("bySlug/{slug:required}")]
-        public async Task<ActionResult<GetBookResponse>> GetBookBySlug(string slug)
+        public async Task<ActionResult<GetBookDto>> GetBookBySlug(string slug)
         {
-            var book = await context.Books
-                .Include(b => b.Authors)
-                .Include(b => b.Genres)
-                .Where(b => b.Slug == slug).Select(b =>
-                new GetBookResponse(b.BookId,
-                    b.Title,
-                    b.Summary,
-                    b.Price,
-                    b.PublishDate,
-                    b.Genres.Select(g => new ReferencedGenreDto(g.GenreId,
-                        g.GenreName)),
-                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)),
-                    b.Slug)
-            ).FirstOrDefaultAsync();
+            var searchResult = await bookService.GetBookBySlug(slug);
 
-            
-            
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            return book;
+            return searchResult.Match<ActionResult<GetBookDto>>(
+                dto => dto,
+                notFound => NotFound());
         }
         
         // GET: api/Book/{guid}
         [HttpGet("byId/{id:guid}")]
-        public async Task<ActionResult<GetBookResponse>> GetBookById(Guid id)
+        public async Task<ActionResult<GetBookDto>> GetBookById(Guid id)
         {
-            var book = await context.Books
-                .Include(b => b.Authors)
-                .Include(b => b.Genres)
-                .Where(b => b.BookId == id).Select(b =>
-                new GetBookResponse(b.BookId,
-                    b.Title,
-                    b.Summary,
-                    b.Price,
-                    b.PublishDate,
-                    b.Genres.Select(g => new ReferencedGenreDto(g.GenreId,
-                        g.GenreName)),
-                    b.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)),
-                    b.Slug)
-            ).FirstOrDefaultAsync();
-
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            return book;
+            var  searchResult = await bookService.GetBookById(id);
+            
+            return searchResult.Match<ActionResult<GetBookDto>>(
+                dto => dto,
+                notFound => NotFound());
         }
 
         // PUT: api/Book/5
@@ -100,93 +45,23 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutBook([FromRoute] Guid id, [FromBody] UpdateBookRequest request)
         {
+            var updateBookResult =  await bookService.UpdateBook(request, id);
             
-            var book = await context.Books.FindAsync(id);
-            if (book == null || id != request.BookId)
-            {
-                return BadRequest();
-            }
-            
-            book.Title = request.Title;
-            book.Summary = request.Summary;
-            book.Price = request.Price;
-            book.PublishDate = request.PublishDate;
-            book.Genres.Clear();
-            book.Authors.Clear();
-            var genres = await context.Genres.Where(g => request.Genres.Contains(g.GenreId)).ToListAsync();
-            var authors =  await context.Authors.Where(a => request.Authors.Contains(a.AuthorId)).ToListAsync();
-            book.Genres = genres;
-            book.Authors = authors;
-            book.Slug = dataService.GenerateSlug(book.BookId, request.Title);
-
-            if (request.SeriesId is not null && request.SeriesNumber is not null)
-            {
-                var series = await context.Series.Where(s => s.SeriesId == request.SeriesId).SingleOrDefaultAsync();
-                book.Series = series;
-                book.SeriesNumber = request.SeriesNumber;
-            }
-            
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BookExists(book.BookId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return updateBookResult.Match<IActionResult>(
+                error => BadRequest(),
+                notFound => NotFound(),
+                success => NoContent());
         }
 
         // POST: api/Book
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetBookResponse>> PostBook(CreateBookRequest request)
+        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookRequest request)
         {
+            var createBookResult = await bookService.CreateBook(request);
             
-            // Ensure that all subgenres added to a book also have their parent genre added.
-            var genres = await context.Genres.Where(g => request.Genres.Contains(g.GenreId)).Select(g => new
-            {
-                g.GenreId,
-                g.ParentGenre
-            }).ToListAsync();
-            foreach (var genre in genres.ToList())
-            {
-                if (genre.ParentGenre is null || request.Genres.Contains(genre.ParentGenre.GenreId))
-                {
-                    continue;
-                }
-                
-                request.Genres.Add(genre.ParentGenre.GenreId);
-            }
-            
-            var bookId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
-            Book book = new()
-            {
-                BookId = bookId,
-                Title = request.Title,
-                Summary = request.Summary,
-                PublishDate = request.PublishDate,
-                Price = request.Price,
-                Genres = context.Genres.Where(g => request.Genres.Contains(g.GenreId)).ToList(),
-                Authors = context.Authors.Where(a => request.Authors.Contains(a.AuthorId)).ToList(),
-                Slug = dataService.GenerateSlug(bookId, request.Title)
-            };
-            context.Books.Add(book);
-            await context.SaveChangesAsync();
-            
-            var bookResponse = new GetBooksDto(book.BookId, book.Title, book.Summary, book.PublishDate, 
-                book.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)).ToList(), book.Slug);
-
-            return CreatedAtAction("GetBookById", new { id = book.BookId }, bookResponse);
+            return CreatedAtAction("GetBookById", new { id = createBookResult.BookId }, createBookResult);
         }
 
         // DELETE: api/Book/5
@@ -194,21 +69,11 @@ namespace CSharp_BookStop.API.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteBook(Guid id)
         {
-            var book = await context.Books.FindAsync(id);
-            if (book == null)
-            {
-                return NotFound();
-            }
+            var deleteBookResult = await bookService.DeleteBook(id);
 
-            context.Books.Remove(book);
-            await context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool BookExists(Guid id)
-        {
-            return context.Books.Any(e => e.BookId == id);
+            return deleteBookResult.Match<IActionResult>(
+                notFound => NotFound(),
+                success => NoContent());
         }
     }
 }

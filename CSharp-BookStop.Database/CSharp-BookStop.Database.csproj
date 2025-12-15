@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>CSharp_BookStop.Database</RootNamespace>
+        <UserSecretsId>950cd27e-c979-4395-bc06-cae466875e27</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
