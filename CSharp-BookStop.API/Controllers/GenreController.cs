@@ -46,7 +46,7 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutGenre(Guid id, UpdateGenreRequest request)
         {
-            var updatedGenre = await genreService.UpdateGenre(request, id);
+            var updatedGenre = await genreService.UpdateGenre(request);
             
             return updatedGenre.Match<IActionResult>(
                 error => BadRequest(error),

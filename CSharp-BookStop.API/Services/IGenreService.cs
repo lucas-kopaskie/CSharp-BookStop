@@ -13,6 +13,6 @@ public interface IGenreService
     
     public Task<OneOf<GenreDto, Error<string>>> CreateGenre(CreateGenreRequest request);
     
-    public Task<OneOf<Error<string>, NotFound, Success>> UpdateGenre(UpdateGenreRequest request, Guid id);
+    public Task<OneOf<Error<string>, NotFound, Success>> UpdateGenre(UpdateGenreRequest request);
     public Task<OneOf<NotFound, Success>> DeleteGenre(Guid id);
 }

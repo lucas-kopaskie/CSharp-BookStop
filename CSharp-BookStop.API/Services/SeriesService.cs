@@ -87,21 +87,16 @@ public class SeriesService(BookStopContext context, IDataService dataService) : 
         return new SeriesDto(series.SeriesId, series.Name, series.Slug);
     }
 
-    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateSeries(UpdateSeriesRequest request, Guid id)
+    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateSeries(UpdateSeriesRequest request)
     {
-        var series = await context.Series.FindAsync(id);
+        var series = await context.Series.FindAsync(request.SeriesId);
         if (series == null)
         {
             return new NotFound();
         }
-
-        if (series.SeriesId != id)
-        {
-            return new Error<string>("Series Id does not match");
-        } 
-            
+        
         series.Name = request.Name;
-        series.Slug = dataService.GenerateSlug(id, request.Name);
+        series.Slug = dataService.GenerateSlug(request.SeriesId, request.Name);
 
         try
         {
@@ -109,11 +104,6 @@ public class SeriesService(BookStopContext context, IDataService dataService) : 
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!SeriesExists(id))
-            {
-                return new NotFound();
-            }
-
             return new Error<string>("There was an error updating your series.");
         }
 
@@ -132,10 +122,5 @@ public class SeriesService(BookStopContext context, IDataService dataService) : 
         await context.SaveChangesAsync();
 
         return new Success();
-    }
-    
-    private bool SeriesExists(Guid id)
-    {
-        return context.Series.Any(e => e.SeriesId == id);
     }
 }

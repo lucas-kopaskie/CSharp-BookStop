@@ -13,7 +13,7 @@ public interface IBookService
     
     public Task<OneOf<BookDto, Error<string>>> CreateBook(CreateBookRequest createBookRequest);
     
-    public Task<OneOf<Error<string>, NotFound, Success>> UpdateBook(UpdateBookRequest updateBookRequest, Guid id);
+    public Task<OneOf<Error<string>, NotFound, Success>> UpdateBook(UpdateBookRequest updateBookRequest);
     public Task<OneOf<NotFound, Success>> DeleteBook(Guid id);
     
 }

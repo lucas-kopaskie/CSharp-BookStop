@@ -13,6 +13,6 @@ public interface IAuthorService
     
     public Task<OneOf<AuthorDto, Error<string>>> CreateAuthor(CreateAuthorRequest request);
     
-    public Task<OneOf<Error<string>, NotFound, Success>> UpdateAuthor(UpdateAuthorRequest request, Guid id);
+    public Task<OneOf<Error<string>, NotFound, Success>> UpdateAuthor(UpdateAuthorRequest request);
     public Task<OneOf<NotFound, Success>> DeleteAuthor(Guid id);
 }

@@ -96,17 +96,13 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         return authorResponse;
     }
 
-    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateAuthor(UpdateAuthorRequest request, Guid id)
+    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateAuthor(UpdateAuthorRequest request)
     {
-        var author = await context.Authors.FindAsync(id);
+        var author = await context.Authors.FindAsync(request.AuthorId);
 
         if (author == null)
         {
             return new NotFound();
-        }
-        if (request.AuthorId != author.AuthorId)
-        {
-            return new Error<string>("Mismatched author Id");
         }
             
         author.AuthorName = request.AuthorName;
@@ -120,10 +116,6 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!AuthorExists(id))
-            {
-                return new NotFound();
-            }
             return new Error<string>("An error occurred while updating your author");
         }
 
@@ -142,10 +134,5 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         await context.SaveChangesAsync();
 
         return new Success();
-    }
-    
-    private bool AuthorExists(Guid id)
-    {
-        return context.Authors.Any(e => e.AuthorId == id);
     }
 }

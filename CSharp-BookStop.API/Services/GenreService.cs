@@ -91,9 +91,9 @@ public class GenreService(BookStopContext context) : IGenreService
         return new GenreDto(newGenre.GenreId, newGenre.GenreName, null);
     }
 
-    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateGenre(UpdateGenreRequest request, Guid id)
+    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateGenre(UpdateGenreRequest request)
     {
-        var genre = await context.Genres.FindAsync(id);
+        var genre = await context.Genres.FindAsync(request.GenreId);
         if (genre is null)
         {
             return new NotFound();

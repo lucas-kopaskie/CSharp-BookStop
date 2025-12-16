@@ -47,7 +47,7 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutAuthor(Guid id, UpdateAuthorRequest request)
         {
-            var updatedAuthor = await authorService.UpdateAuthor(request, id);
+            var updatedAuthor = await authorService.UpdateAuthor(request);
 
             return updatedAuthor.Match<IActionResult>(
                 error => BadRequest(error),

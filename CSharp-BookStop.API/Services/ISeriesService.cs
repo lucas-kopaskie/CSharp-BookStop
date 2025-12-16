@@ -13,7 +13,7 @@ public interface ISeriesService
     
     public Task<OneOf<SeriesDto, Error<string>>> CreateSeries(CreateSeriesRequest request);
     
-    public Task<OneOf<Error<string>, NotFound, Success>> UpdateSeries(UpdateSeriesRequest request, Guid id);
+    public Task<OneOf<Error<string>, NotFound, Success>> UpdateSeries(UpdateSeriesRequest request);
     
     public Task<OneOf<NotFound, Success>> DeleteSeries(Guid id);
 }

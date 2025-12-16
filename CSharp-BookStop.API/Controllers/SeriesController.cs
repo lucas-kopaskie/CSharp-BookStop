@@ -35,7 +35,7 @@ namespace CSharp_BookStop.API.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> PutSeries([FromRoute] Guid id, [FromBody] UpdateSeriesRequest request)
         {
-            var updatedSeries = await seriesService.UpdateSeries(request, id);
+            var updatedSeries = await seriesService.UpdateSeries(request);
 
             return updatedSeries.Match<IActionResult>(
                 error => BadRequest(error),
