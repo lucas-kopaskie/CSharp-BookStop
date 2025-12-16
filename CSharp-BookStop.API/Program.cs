@@ -32,6 +32,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddRoles<IdentityRole>(
 builder.Services.AddScoped<IDataService, DataService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<ISeriesService, SeriesService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
