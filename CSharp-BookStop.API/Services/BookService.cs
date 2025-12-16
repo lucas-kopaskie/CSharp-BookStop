@@ -12,13 +12,13 @@ namespace CSharp_BookStop.API.Services;
 public class BookService(BookStopContext context, IDataService dataService) : IBookService
 {
 
-    public async Task<OneOf<GetBookDto, NotFound>> GetBookById(Guid id)
+    public async Task<OneOf<BookDto, NotFound>> GetBookById(Guid id)
     {
         var book = await context.Books
             .Include(b => b.Authors)
             .Include(b => b.Genres)
             .Where(b => b.BookId == id).Select(b =>
-                new GetBookDto(b.BookId,
+                new BookDto(b.BookId,
                     b.Title,
                     b.Summary,
                     b.Price,
@@ -37,13 +37,13 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
         return book;
     }
 
-    public async Task<OneOf<GetBookDto, NotFound>> GetBookBySlug(string slug)
+    public async Task<OneOf<BookDto, NotFound>> GetBookBySlug(string slug)
     {
         var book = await context.Books
             .Include(b => b.Authors)
             .Include(b => b.Genres)
             .Where(b => b.Slug == slug).Select(b =>
-                new GetBookDto(b.BookId,
+                new BookDto(b.BookId,
                     b.Title,
                     b.Summary,
                     b.Price,
@@ -62,7 +62,7 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
         return book;
     }
 
-    public async Task<GetBooksDto> GetBooks(int offset, int limit)
+    public async Task<BookListDto> GetBooks(int offset, int limit)
     {
         var books = await context.Books
             .Include(b => b.Authors)
@@ -81,10 +81,10 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
 
         var bookCount = context.Books.Count();
             
-        return new GetBooksDto(books, bookCount);
+        return new BookListDto(books, bookCount);
     }
 
-    public async Task<OneOf<GetBookDto, Error<string>>> CreateBook(CreateBookRequest request)
+    public async Task<OneOf<BookDto, Error<string>>> CreateBook(CreateBookRequest request)
     {
         // Ensure that all subgenres added to a book also have their parent genre added.
         var genres = await context.Genres.Where(g => request.Genres.Contains(g.GenreId)).Select(g => new
@@ -125,7 +125,7 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
         }
 
             
-        var bookResponse = new GetBookDto(book.BookId, book.Title, book.Summary, book.Price, book.PublishDate,
+        var bookResponse = new BookDto(book.BookId, book.Title, book.Summary, book.Price, book.PublishDate,
             book.Genres.Select(g => new ReferencedGenreDto(g.GenreId, g.GenreName)).ToList(), 
             book.Authors.Select(a => new ReferencedAuthorDto(a.AuthorId, a.AuthorName, a.Slug)).ToList(), book.Slug);
 

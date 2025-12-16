@@ -11,7 +11,7 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Author
         [HttpGet]
-        public async Task<ActionResult<GetAuthorsDto>> GetAuthors([FromQuery] int offset = 0, 
+        public async Task<ActionResult<AuthorListDto>> GetAuthors([FromQuery] int offset = 0, 
             [FromQuery] int limit = 10)
         {
             return await authorService.GetAuthors(offset, limit);
@@ -19,11 +19,11 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Author/5
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<GetAuthorDto>> GetAuthor([FromRoute] Guid id)
+        public async Task<ActionResult<AuthorDto>> GetAuthor([FromRoute] Guid id)
         {
             var searchResult = await authorService.GetAuthorById(id);
 
-            return searchResult.Match<ActionResult<GetAuthorDto>>(
+            return searchResult.Match<ActionResult<AuthorDto>>(
                 dto => Ok(dto),
                 notFound => NotFound()
             );
@@ -31,12 +31,12 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Author/019a0869-7992-7380-8379-c819abaa00e7/books
         [HttpGet("{id:guid}/books")]
-        public async Task<ActionResult<GetBooksByAuthorDto>> GetBooksByAuthor([FromRoute] Guid id, 
+        public async Task<ActionResult<AuthorWithBooksDto>> GetBooksByAuthor([FromRoute] Guid id, 
             [FromQuery] int offset = 0, [FromQuery] int limit = 10)
         {
             var authorWithBooks = await authorService.GetBooksByAuthorId(id,  offset, limit);
 
-            return authorWithBooks.Match<ActionResult<GetBooksByAuthorDto>>(
+            return authorWithBooks.Match<ActionResult<AuthorWithBooksDto>>(
                 dto => Ok(dto),
                 notFound => NotFound());
         }
@@ -59,11 +59,11 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetAuthorDto>> PostAuthor(CreateAuthorRequest request)
+        public async Task<ActionResult<AuthorDto>> PostAuthor(CreateAuthorRequest request)
         {
             var createAuthorResult = await authorService.CreateAuthor(request);
 
-            return createAuthorResult.Match<ActionResult<GetAuthorDto>>(
+            return createAuthorResult.Match<ActionResult<AuthorDto>>(
                 dto => CreatedAtAction("GetAuthor", new { id = dto.AuthorId, dto }),
                 error => StatusCode(500, error));
         }

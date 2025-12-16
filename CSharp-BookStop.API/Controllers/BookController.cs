@@ -11,7 +11,7 @@ namespace CSharp_BookStop.API.Controllers
     {
         // GET: api/Book
         [HttpGet]
-        public async Task<ActionResult<GetBooksDto>> GetBooks([FromQuery] int offset = 0,
+        public async Task<ActionResult<BookListDto>> GetBooks([FromQuery] int offset = 0,
             [FromQuery] int limit = 10)
         {
             return await bookService.GetBooks(offset, limit);
@@ -19,22 +19,22 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Book/bill%20bob-rqf380f
         [HttpGet("bySlug/{slug:required}")]
-        public async Task<ActionResult<GetBookDto>> GetBookBySlug(string slug)
+        public async Task<ActionResult<BookDto>> GetBookBySlug(string slug)
         {
             var searchResult = await bookService.GetBookBySlug(slug);
 
-            return searchResult.Match<ActionResult<GetBookDto>>(
+            return searchResult.Match<ActionResult<BookDto>>(
                 dto => Ok(dto),
                 notFound => NotFound());
         }
         
         // GET: api/Book/{guid}
         [HttpGet("byId/{id:guid}")]
-        public async Task<ActionResult<GetBookDto>> GetBookById(Guid id)
+        public async Task<ActionResult<BookDto>> GetBookById(Guid id)
         {
             var  searchResult = await bookService.GetBookById(id);
             
-            return searchResult.Match<ActionResult<GetBookDto>>(
+            return searchResult.Match<ActionResult<BookDto>>(
                 dto => Ok(dto),
                 notFound => NotFound());
         }
@@ -57,11 +57,11 @@ namespace CSharp_BookStop.API.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<GetBookDto>> PostBook(CreateBookRequest request)
+        public async Task<ActionResult<BookDto>> PostBook(CreateBookRequest request)
         {
             var createBookResult = await bookService.CreateBook(request);
             
-            return createBookResult.Match<ActionResult<GetBookDto>>(
+            return createBookResult.Match<ActionResult<BookDto>>(
                 dto => CreatedAtAction("GetBookById", new { id = dto.BookId, dto }),
                 error => StatusCode(500, error));
         }

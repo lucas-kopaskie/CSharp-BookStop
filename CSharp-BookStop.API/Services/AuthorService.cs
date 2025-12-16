@@ -10,7 +10,7 @@ namespace CSharp_BookStop.API.Services;
 
 public class AuthorService(BookStopContext context, IDataService dataService) : IAuthorService
 {
-    public async Task<OneOf<GetAuthorDto, NotFound>> GetAuthorById(Guid id)
+    public async Task<OneOf<AuthorDto, NotFound>> GetAuthorById(Guid id)
     {
         var author = await context.Authors.FindAsync(id);
         
@@ -18,16 +18,16 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         {
             return new NotFound();
         }
-        return new GetAuthorDto(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
+        return new AuthorDto(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
     }
 
-    public async Task<OneOf<GetBooksByAuthorDto, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit)
+    public async Task<OneOf<AuthorWithBooksDto, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit)
     {
         var authorBooks = await context.Authors
             .Include(a => a.Books)
             .ThenInclude(b => b.Genres)
             .Where(a => a.AuthorId == id)
-            .Select(a => new GetBooksByAuthorDto(
+            .Select(a => new AuthorWithBooksDto(
                 a.AuthorId, 
                 a.AuthorName, 
                 a.Biography, 
@@ -56,17 +56,17 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         return authorBooks;
     }
 
-    public async Task<GetAuthorsDto> GetAuthors(int offset, int limit)
+    public async Task<AuthorListDto> GetAuthors(int offset, int limit)
     {
         var authors = await context.Authors.OrderBy(a => a.AuthorName).Skip(offset).Take(limit)
             .Select(a => new AuthorListItemDto(a.AuthorId, a.AuthorName, a.Slug)).ToListAsync();
             
         var authorCount =  context.Authors.Count();
 
-        return new GetAuthorsDto(authors, authorCount);
+        return new AuthorListDto(authors, authorCount);
     }
 
-    public async Task<OneOf<GetAuthorDto, Error<string>>> CreateAuthor(CreateAuthorRequest request)
+    public async Task<OneOf<AuthorDto, Error<string>>> CreateAuthor(CreateAuthorRequest request)
     {
         var authorId = Uuid.NewDatabaseFriendly(UUIDNext.Database.PostgreSql);
         Author author = new()
@@ -90,7 +90,8 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         }
         
 
-        var authorResponse = new GetAuthorDto(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
+        var authorResponse = new AuthorDto(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth,
+            author.Slug);
                 
         return authorResponse;
     }
