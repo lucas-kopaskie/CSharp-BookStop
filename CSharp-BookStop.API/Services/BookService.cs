@@ -132,12 +132,18 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
         return bookResponse;
     }
 
-    public async Task<OneOf<Error, NotFound, Success>> UpdateBook(UpdateBookRequest request, Guid id)
+    public async Task<OneOf<Error<string>, NotFound, Success>> UpdateBook(UpdateBookRequest request, Guid id)
     {
         var book = await context.Books.FindAsync(id);
-        if (book == null || id != request.BookId)
+
+        if (book == null)
         {
-            return new Error();
+            return new NotFound();
+        }
+
+        if (request.BookId != book.BookId)
+        {
+            return new Error<string>("Book Id does not match");
         }
             
         book.Title = request.Title;
@@ -169,7 +175,7 @@ public class BookService(BookStopContext context, IDataService dataService) : IB
             {
                 return new NotFound();
             }
-            throw;
+            return new Error<string>("An error occurred while updating your book.");
             
         }
 

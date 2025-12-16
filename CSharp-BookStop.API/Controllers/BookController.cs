@@ -48,7 +48,7 @@ namespace CSharp_BookStop.API.Controllers
             var updateBookResult =  await bookService.UpdateBook(request, id);
             
             return updateBookResult.Match<IActionResult>(
-                error => BadRequest(),
+                error => BadRequest(error),
                 notFound => NotFound(),
                 success => NoContent());
         }
