@@ -7,7 +7,7 @@ namespace CSharp_BookStop.API.Services;
 public interface IAuthorService
 {
     public Task<OneOf<AuthorDto, NotFound>> GetAuthorById(Guid id);
-    public Task<OneOf<AuthorWithBooksDto, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit);
+    public Task<OneOf<BooksByAuthor, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit);
 
     public Task<AuthorListDto> GetAuthors(int offset, int limit);
     

@@ -30,12 +30,12 @@ namespace CSharp_BookStop.API.Controllers
 
         // GET: api/Genre/Fantasy/books
         [HttpGet("{genreName:required}/books")]
-        public async Task<ActionResult<GenreWithBooksDto>> GetBooksByGenre([FromRoute] string genreName,
+        public async Task<ActionResult<BooksByGenre>> GetBooksByGenre([FromRoute] string genreName,
             [FromQuery] int offset = 0, [FromQuery] int limit = 10)
         {
             var genreWithBooks = await genreService.GetGenreWithBooks(genreName, offset, limit);
             
-            return genreWithBooks.Match<ActionResult<GenreWithBooksDto>>(
+            return genreWithBooks.Match<ActionResult<BooksByGenre>>(
                 dto => Ok(dto),
                 notFound => NotFound());
         }

@@ -28,6 +28,18 @@ namespace CSharp_BookStop.API.Controllers
                 notFound => NotFound()
             );
         }
+        
+        // GET: api/Series/019a0869-7992-7380-8379-c819abaa00e7/books
+        [HttpGet("{id:guid}/books")]
+        public async Task<ActionResult<BooksBySeries>> GetBooksBySeries([FromRoute] Guid id, 
+            [FromQuery] int offset = 0, [FromQuery] int limit = 10)
+        {
+            var booksBySeries = await seriesService.GetBooksBySeries(id, offset, limit);
+
+            return booksBySeries.Match<ActionResult<BooksBySeries>>(
+                dto => Ok(dto),
+                notFound => NotFound());
+        }
 
         // PUT: api/Series/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

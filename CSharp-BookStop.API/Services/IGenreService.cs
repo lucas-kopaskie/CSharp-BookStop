@@ -7,7 +7,7 @@ namespace CSharp_BookStop.API.Services;
 public interface IGenreService
 {
     public Task<OneOf<GenreDto, NotFound>> GetGenreByName(string genreName);
-    public Task<OneOf<GenreWithBooksDto, NotFound>> GetGenreWithBooks(string genreName, int offset, int limit);
+    public Task<OneOf<BooksByGenre, NotFound>> GetGenreWithBooks(string genreName, int offset, int limit);
     
     public Task<GenreListDto> GetGenres(int offset, int limit);
     

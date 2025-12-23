@@ -2,8 +2,8 @@
 
 // Internal
 public record SeriesDto(Guid SeriesId, string Name, string Slug);
-public record SeriesWithBooksDto(Guid SeriesId, string Name, IEnumerable<ReferencedBookDto> Books, string Slug);
-public record SeriesListDto(List<SeriesListItemDto> Series, int Count);
+public record BooksBySeries(Guid SeriesId, IEnumerable<ReferencedBookDto> Books, int BookCount);
+public record SeriesListDto(List<SeriesListItemDto> Series, int SeriesCount);
 public record SeriesListItemDto(Guid SeriesId, string Name, string Slug);
 
 // Request / Response

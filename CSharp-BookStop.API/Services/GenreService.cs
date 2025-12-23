@@ -24,16 +24,15 @@ public class GenreService(BookStopContext context) : IGenreService
         return genre;
     }
 
-    public async Task<OneOf<GenreWithBooksDto, NotFound>> GetGenreWithBooks(string genreName, int offset, int limit)
+    public async Task<OneOf<BooksByGenre, NotFound>> GetGenreWithBooks(string genreName, int offset, int limit)
     {
         var genreBooks = await context.Genres
             .Include(g => g.Books)
             .ThenInclude(b => b.Authors)
             .Where(g => g.GenreName == genreName)
             .Select(g =>
-                new GenreWithBooksDto(
+                new BooksByGenre(
                     g.GenreId,
-                    g.GenreName, 
                     g.Books
                         .OrderBy(b => b.BookId)
                         .Skip(offset)

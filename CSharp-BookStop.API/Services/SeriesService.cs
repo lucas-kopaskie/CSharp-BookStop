@@ -26,12 +26,11 @@ public class SeriesService(BookStopContext context, IDataService dataService) : 
         return series;
     }
 
-    public async Task<OneOf<SeriesWithBooksDto, NotFound>> GetBooksBySeries(Guid seriesId, int offset, int limit)
+    public async Task<OneOf<BooksBySeries, NotFound>> GetBooksBySeries(Guid seriesId, int offset, int limit)
     {
         var series = await context.Series.Where(s => s.SeriesId == seriesId).Select(s => 
-                new SeriesWithBooksDto(
+                new BooksBySeries(
                 s.SeriesId,
-                s.Name,
                 s.Books.Select(b => new ReferencedBookDto(
                     b.BookId, 
                     b.Title, 
@@ -42,7 +41,7 @@ public class SeriesService(BookStopContext context, IDataService dataService) : 
                         a.Slug))
                         .ToList(), 
                     b.Slug)).ToList(),
-                s.Slug))
+                s.Books.Count()))
             .SingleOrDefaultAsync();
 
         if (series == null)

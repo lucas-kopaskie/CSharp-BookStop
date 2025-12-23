@@ -3,7 +3,7 @@
 // Internal
 public record GenreDto(Guid GenreId, string GenreName, IEnumerable<ReferencedGenreDto>? SubGenres);
 public record ReferencedGenreDto(Guid GenreId, string GenreName);
-public record GenreWithBooksDto(Guid GenreId, string GenreName, IEnumerable<ReferencedBookDto> Books, int Count);
+public record BooksByGenre(Guid GenreId, IEnumerable<ReferencedBookDto> Books, int BookCount);
 public record GenreListDto(List<GenreListItemDto> Genres, int Count);
 public record GenreListItemDto(Guid GenreId, string GenreName);
 

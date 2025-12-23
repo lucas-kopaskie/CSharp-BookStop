@@ -21,18 +21,14 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
         return new AuthorDto(author.AuthorId, author.AuthorName, author.Biography, author.DateOfBirth, author.Slug);
     }
 
-    public async Task<OneOf<AuthorWithBooksDto, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit)
+    public async Task<OneOf<BooksByAuthor, NotFound>> GetBooksByAuthorId(Guid id, int offset, int limit)
     {
         var authorBooks = await context.Authors
             .Include(a => a.Books)
             .ThenInclude(b => b.Genres)
             .Where(a => a.AuthorId == id)
-            .Select(a => new AuthorWithBooksDto(
+            .Select(a => new BooksByAuthor(
                 a.AuthorId, 
-                a.AuthorName, 
-                a.Biography, 
-                a.DateOfBirth,
-                a.Books.Count(),
                 a.Books
                     .OrderBy(b => b.BookId)
                     .Skip(offset)
@@ -45,7 +41,8 @@ public class AuthorService(BookStopContext context, IDataService dataService) : 
                             .Select(author =>
                                 new ReferencedAuthorDto(author.AuthorId, author.AuthorName, author.Slug)).ToList(),
                         b.Slug))
-                    .ToList())
+                    .ToList(),
+                a.Books.Count())
             )
             .SingleOrDefaultAsync();
 

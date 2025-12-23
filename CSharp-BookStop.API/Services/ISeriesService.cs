@@ -7,7 +7,7 @@ namespace CSharp_BookStop.API.Services;
 public interface ISeriesService
 {
     public Task<OneOf<SeriesDto, NotFound>> GetSeriesById(Guid seriesId);
-    public Task<OneOf<SeriesWithBooksDto, NotFound>> GetBooksBySeries(Guid seriesId, int offset, int limit);
+    public Task<OneOf<BooksBySeries, NotFound>> GetBooksBySeries(Guid seriesId, int offset, int limit);
     
     public Task<SeriesListDto> GetSeries(int offset, int limit);
     
